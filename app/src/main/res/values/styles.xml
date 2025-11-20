@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.BicutanBites.Button" parent="Widget.MaterialComponents.Button">
+        <item name="cornerRadius">12dp</item>
+        <item name="android:backgroundTint">@color/brand_orange</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="ItemChipStyle" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="android:textColor">#374151</item>
+        <item name="chipBackgroundColor">#F3F4F6</item>
+        <item name="chipCornerRadius">6dp</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
+    <style name="FilterChipStyle" parent="Widget.MaterialComponents.Chip.Filter">
+        <item name="android:textColor">@color/chip_text_color_selector</item>
+        <item name="chipBackgroundColor">@color/chip_background_color_selector</item>
+        <item name="chipStrokeColor">@color/chip_stroke_color_selector</item>
+        <item name="chipStrokeWidth">1dp</item>
+    </style>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.BicutanBites" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/brand_orange</item>
+        <item name="colorPrimaryVariant">@color/brand_orange_dark</item>
+        <item name="android:statusBarColor">@color/brand_orange_dark</item>
+        <item name="android:windowBackground">@color/bg_light</item>
+        <item name="materialButtonStyle">@style/Widget.BicutanBites.Button</item>
+    </style>
+</resources>
