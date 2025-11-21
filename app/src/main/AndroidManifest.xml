@@ -18,9 +18,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Create Account screen (MISSING BEFORE — now fixed) -->
+        <activity android:name=".CreateAccountActivity" />
+
         <!-- Main screen -->
         <activity android:name=".HomeActivity" />
-
 
     </application>
 

@@ -1,15 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
     namespace = "com.example.bicutanbites"
-    compileSdk = 34 // ✅ use numeric constant, not "version = release(36)"
+    compileSdk = 36 // ✅ use numeric constant, not "version = release(36)"
 
     defaultConfig {
         applicationId = "com.example.bicutanbites"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -38,6 +39,11 @@ dependencies {
     implementation(libs.material)
     implementation(libs.google.material)
     implementation(libs.swiperefreshlayout)
+    implementation(libs.firebase.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
