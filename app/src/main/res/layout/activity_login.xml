@@ -2,100 +2,242 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface"
-    android:padding="20dp">
+    android:background="@drawable/login_gradient_background"
+    android:padding="16dp">
 
-    <!-- top logo / brand -->
+    <!-- App Logo / Brand -->
     <LinearLayout
         android:id="@+id/logo_box"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
+        android:layout_marginTop="40dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="36dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
-            android:layout_width="84dp"
-            android:layout_height="84dp"
-            android:src="@drawable/ic_food_placeholder"
-            android:contentDescription="@string/app_name" />
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@mipmap/ic_launcher"
+            app:tint="@android:color/white"
+            android:contentDescription="@string/app_name"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="bicutanBites"
-            android:textSize="26sp"
+            android:text="Bicutan Bites"
+            android:textSize="32sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="@android:color/white"
             android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Authentic Filipino Cuisine"
+            android:textSize="14sp"
+            android:textColor="#F0FDF4"
+            android:letterSpacing="0.05"/>
     </LinearLayout>
 
-    <!-- card container -->
+    <!-- Login Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/login_card"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
-        android:layout_marginTop="28dp"
-        app:layout_constraintTop_toBottomOf="@id/logo_box"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="8dp"
+        android:layout_marginTop="24dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/logo_box">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="24dp">
 
+            <TextView
+                android:id="@+id/loginTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Log In"
+                android:textColor="#111827"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/loginSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Please sign in to access the App."
+                android:textColor="#6B7280"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/loginTitle" />
+
+            <!-- Email Label -->
+            <TextView
+                android:id="@+id/labelEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email Address"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#111827"
+                android:layout_marginTop="24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/loginSubtitle" />
+
+            <!-- Email Input -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/emailInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/email_hint">
+                app:boxBackgroundColor="#F9FAFB"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:startIconDrawable="@drawable/ic_email"
+                app:startIconTint="#9CA3AF"
+                app:layout_constraintTop_toBottomOf="@id/labelEmail">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/email_input"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:inputType="textEmailAddress"/>
+                    android:layout_height="wrap_content"
+                    android:hint="Enter your email"
+                    android:inputType="textEmailAddress"
+                    android:textSize="14sp"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Password Label -->
+            <TextView
+                android:id="@+id/labelPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Password"
+                android:textStyle="bold"
+                android:textColor="#111827"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/emailInputLayout"/>
+
+            <!-- Password Input -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/passwordInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/password_hint"
-                android:layout_marginTop="12dp">
+                app:boxBackgroundColor="#F9FAFB"
+                app:endIconMode="password_toggle"
+                app:endIconTint="#9CA3AF"
+                app:startIconDrawable="@drawable/ic_lock"
+                app:startIconTint="#9CA3AF"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/labelPassword">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/password_input"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:inputType="textPassword"/>
+                    android:layout_height="wrap_content"
+                    android:hint="Enter your password"
+                    android:inputType="textPassword"
+                    android:textSize="14sp"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <Button
+            <!-- Login Button -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/login_button"
-                style="@style/Widget.BicutanBites.Button"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Sign In"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="#FF4B1F"
+                app:cornerRadius="12dp"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@id/passwordInputLayout" />
+
+            <!-- Demo Credentials -->
+            <LinearLayout
+                android:id="@+id/demo_credentials_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_demo_credentials"
+                android:padding="12dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/login_button">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Demo Credentials:"
+                    android:textColor="#1E3A8A"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Email: mike@gmail.com"
+                    android:textColor="#2563EB"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Password: 123456"
+                    android:textColor="#2563EB"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <!-- Create Account Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/create_account_button"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:text="@string/login_label"
-                android:layout_marginTop="18dp"/>
-        </LinearLayout>
+                android:text="Create Account"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:backgroundTint="#FF4B1F"
+                android:textColor="@android:color/white"
+                app:cornerRadius="12dp"
+                android:layout_marginTop="20dp"
+                app:layout_constraintTop_toBottomOf="@id/demo_credentials_box"/>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- small footer text -->
+    <!-- Footer Text -->
     <TextView
+        android:id="@+id/footerText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign up • Forgot password"
-        android:textColor="@color/text_secondary"
+        android:text="Restaurant Management System"
+        android:textColor="#FFE4E6"
+        android:textSize="12sp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="24dp"/>
+        app:layout_constraintEnd_toEndOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

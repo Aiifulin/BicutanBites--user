@@ -16,7 +16,7 @@
         android:background="@color/bg_light"
         app:titleTextColor="@color/text_primary"
         app:navigationIcon="@drawable/ic_home"
-        app:title="The Grand Kitchen" />
+        app:title="Bicutan Bites" />
 
     <!-- Content below toolbar -->
     <LinearLayout
