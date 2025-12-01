@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.bicutanbites">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -18,11 +20,14 @@
             </intent-filter>
         </activity>
 
-        <!-- Create Account screen (MISSING BEFORE — now fixed) -->
+        <!-- Create Account screen -->
         <activity android:name=".CreateAccountActivity" />
 
         <!-- Main screen -->
         <activity android:name=".HomeActivity" />
+
+        <!-- Edit Profile screen -->
+        <activity android:name=".EditProfileActivity" />
 
     </application>
 

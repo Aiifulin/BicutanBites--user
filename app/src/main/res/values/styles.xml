@@ -19,4 +19,16 @@
         <item name="chipStrokeColor">@color/chip_stroke_color_selector</item>
         <item name="chipStrokeWidth">1dp</item>
     </style>
+
+    <style name="CategoryChip">
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:layout_marginRight">10dp</item>
+        <item name="android:background">@drawable/category_chip_bg</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
 </resources>

@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -57,4 +58,10 @@ dependencies {
     // Glide (image loading)
     implementation("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    implementation("com.google.firebase:firebase-storage:20.3.0")
+
+
 }
+
