@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -41,17 +44,51 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // Firebase Email/Password Login
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
-                            startActivity(new Intent(this, HomeActivity.class));
-                            finish();
+                            if (firebaseUser != null) {
+                                String uid = firebaseUser.getUid();
+
+                                FirebaseFirestore.getInstance()
+                                        .collection("users")
+                                        .document(uid)
+                                        .get()
+                                        .addOnSuccessListener(document -> {
+
+                                            if (document.exists()) {
+                                                String name = document.getString("name");
+                                                String emailStored = document.getString("email");
+
+                                                // You can pass user data to next page if needed
+                                                Intent intent = new Intent(this, HomeActivity.class);
+                                                intent.putExtra("userId", uid);
+                                                intent.putExtra("userName", name);
+                                                intent.putExtra("userEmail", emailStored);
+
+                                                Toast.makeText(this, "Welcome " + name + "!", Toast.LENGTH_SHORT).show();
+
+                                                startActivity(intent);
+                                                finish();
+                                            } else {
+                                                Toast.makeText(this,
+                                                        "User record not found in Firestore!",
+                                                        Toast.LENGTH_LONG).show();
+                                            }
+
+                                        })
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(this,
+                                                        "Firestore error: " + e.getMessage(),
+                                                        Toast.LENGTH_SHORT).show()
+                                        );
+                            }
+
                         } else {
-                            Toast.makeText(this, "Invalid credentials: " + task.getException().getMessage(),
+                            Toast.makeText(this,
+                                    "Invalid credentials: " + task.getException().getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -64,16 +101,14 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-
-
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        // Auto-login if already authenticated
-//        FirebaseUser currentUser = mAuth.getCurrentUser();
-//        if (currentUser != null) {
-//            startActivity(new Intent(this, HomeActivity.class));
-//            finish();
-//        }
-//    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Auto-login if already authenticated
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
+        }
+    }
 }

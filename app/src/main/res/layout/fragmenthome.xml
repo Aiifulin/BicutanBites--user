@@ -4,126 +4,222 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- AppBar with Toolbar, search and toggle -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="Bicutan Bites"
-            app:titleTextColor="@android:color/white" />
-
-        <!-- Search + toggle -->
+        <!-- Gradient Header -->
         <LinearLayout
-            android:id="@+id/searchAndToggle"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="@drawable/login_gradient_background">
+
+            <!-- Title + Cart -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:text="Bicutan Bites"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:text="Delicious food, delivered fast"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <!-- Cart button with badge -->
+                <FrameLayout
+                    android:id="@+id/cartButton"
+                    android:layout_alignParentEnd="true"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"> <ImageButton
+                    android:id="@+id/imgCart"
+                    android:layout_width="26dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_cart"
+                    android:scaleType="fitCenter"
+                    android:background="@null"
+                    android:clickable="false"
+                    android:focusable="false" />
+                    <TextView
+                    android:id="@+id/txtCartBadge"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="top|end"
+                    android:gravity="center"
+                    android:text="15"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/badge_circle"
+                    android:clickable="false"
+                    android:focusable="false" />
+                </FrameLayout>
+
+            </RelativeLayout>
+
+            <!-- Restaurant Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="12dp">
+
+                <TextView
+                    android:text="International Cuisine • 4.8 ★"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="2dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="6dp">
+
+                    <TextView
+                        android:text="🚚 Free Delivery    ⏱ 30–40 min"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Search + toggles -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:gravity="center_vertical"
+            android:background="@android:color/white"
             android:orientation="horizontal"
-            android:padding="12dp">
+            android:padding="12dp"
+            android:gravity="center_vertical">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="6dp"
+                app:cardCornerRadius="8dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
                     android:paddingStart="12dp"
                     android:paddingEnd="8dp">
 
                     <ImageView
+                        android:src="@android:drawable/ic_menu_search"
                         android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:contentDescription="Search icon"
-                        android:src="@android:drawable/ic_menu_search" />
+                        android:layout_height="20dp" />
 
                     <EditText
                         android:id="@+id/etSearch"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@android:color/transparent"
-                        android:hint="Search meals, snacks..."
-                        android:imeOptions="actionSearch"
-                        android:inputType="text"
-                        android:paddingStart="8dp" />
+                        android:paddingStart="8dp"
+                        android:hint="Search for food..." />
                 </LinearLayout>
+
+
             </androidx.cardview.widget.CardView>
 
-            <!-- Toggle buttons -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginStart="8dp"
-                android:orientation="horizontal">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
                 <ImageButton
                     android:id="@+id/btnList"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="List view"
-                    android:src="@drawable/ic_view_list" />
+                    android:src="@drawable/ic_view_list"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
 
                 <ImageButton
                     android:id="@+id/btnGrid"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Grid view"
-                    android:src="@drawable/ic_view_grid" />
+                    android:src="@drawable/ic_view_grid"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
             </LinearLayout>
         </LinearLayout>
-
-        <!-- Category chips -->
+        <!-- CATEGORY FILTER BAR -->
         <HorizontalScrollView
-            android:id="@+id/categoryScroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:padding="8dp"
+            android:background="@android:color/white"
+            android:padding="10dp"
             android:scrollbars="none">
 
             <LinearLayout
-                android:id="@+id/layoutCategories"
+                android:id="@+id/categoryBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAll"
-                    style="@style/FilterChipStyle"
+                <!-- ALL -->
+                <TextView
+                    android:id="@+id/btnCatAll"
+                    style="@style/CategoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="All" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipBurgers"
-                    style="@style/FilterChipStyle"
+                <!-- BURGER -->
+                <TextView
+                    android:id="@+id/btnCatBurger"
+                    style="@style/CategoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Burgers" />
+                    android:text="Burger" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipBeverage"
-                    style="@style/FilterChipStyle"
+                <!-- PASTA -->
+                <TextView
+                    android:id="@+id/btnCatPasta"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pasta" />
+
+                <!-- BEVERAGE -->
+                <TextView
+                    android:id="@+id/btnCatBeverage"
+                    style="@style/CategoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Beverage" />
 
-                <!-- Add other chips here with the same style -->
             </LinearLayout>
         </HorizontalScrollView>
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- SwipeRefresh + RecyclerView -->
