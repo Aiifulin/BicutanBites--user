@@ -21,12 +21,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.bicutanbites.CartHandler;
+import com.example.bicutanbites.CheckoutActivity;
 import com.example.bicutanbites.R;
 import com.example.bicutanbites.models.Product;
 import com.example.bicutanbites.ui.ProductAdapter;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -42,9 +44,11 @@ public class HomeFragment extends Fragment {
 
     private EditText etSearch;
     private ImageButton btnList, btnGrid;
-    private SwipeRefreshLayout swipeRefresh;
+    private View btnCartContainer; // The FrameLayout container for the cart
+    private TextView txtCartBadge; // The badge text view
 
-    private FloatingActionButton fabCheckout;
+    private SwipeRefreshLayout swipeRefresh;
+    private CartHandler cartHandler;
 
     private TextView btnCatAll, btnCatBurger, btnCatPasta, btnCatBeverage;
     private String activeCategory = "All";
@@ -62,38 +66,99 @@ public class HomeFragment extends Fragment {
         etSearch = view.findViewById(R.id.etSearch);
         btnList = view.findViewById(R.id.btnList);
         btnGrid = view.findViewById(R.id.btnGrid);
+
+        // Init Cart Views
+        btnCartContainer = view.findViewById(R.id.cartButton); // The FrameLayout
+        txtCartBadge = view.findViewById(R.id.txtCartBadge);   // The Badge TextView
+
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
         btnCatAll = view.findViewById(R.id.btnCatAll);
         btnCatBurger = view.findViewById(R.id.btnCatBurger);
         btnCatPasta = view.findViewById(R.id.btnCatPasta);
         btnCatBeverage = view.findViewById(R.id.btnCatBeverage);
 
+        // Initialize CartHandler
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            cartHandler = new CartHandler(userId);
+        }
 
-        // 1. Setup recycler first (CREATES adapter)
+        // 1. Setup recycler
         setupRecycler();
 
-        // 2. Load products → then adapter.setItems() works safely
+        // 2. Load products
         loadProductsFromFirebase();
 
-        // 3. NOW it's safe to install category buttons
+        // 3. Setup Cart Badge Listener (NEW)
+        setupCartBadge();
+
+        // 4. Setup Categories
         setupCategoryButtons();
 
-        // 4. Other UI setups
+        // 5. Other UI setups
         setupToggles();
         setupSearch();
         setupSwipe();
 
+        // Cart button click listener
+        // We put the listener on the Container so clicking anywhere on the icon/badge works
+        btnCartContainer.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), CheckoutActivity.class);
+            startActivity(intent);
+        });
 
         return view;
     }
 
-    private void setupCategoryButtons() {
+    // --- NEW METHOD: Real-time Cart Badge ---
+    private void setupCartBadge() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            txtCartBadge.setVisibility(View.GONE);
+            return;
+        }
 
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .collection("cart")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) return;
+
+                    int totalQty = 0;
+                    if (snapshots != null) {
+                        for (DocumentSnapshot doc : snapshots) {
+                            Long qty = doc.getLong("qty");
+                            if (qty != null) {
+                                totalQty += qty.intValue();
+                            }
+                        }
+                    }
+
+                    if (totalQty > 0) {
+                        txtCartBadge.setVisibility(View.VISIBLE);
+                        txtCartBadge.setText(String.valueOf(totalQty));
+                    } else {
+                        txtCartBadge.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    private void setupCategoryButtons() {
         View.OnClickListener listener = v -> {
             resetCategoryStyles();
-
             TextView tv = (TextView) v;
-            activeCategory = tv.getText().toString();
+
+            int id = v.getId();
+            if (id == R.id.btnCatAll) {
+                activeCategory = "All";
+            } else if (id == R.id.btnCatBurger) {
+                activeCategory = "Burger";
+            } else if (id == R.id.btnCatPasta) {
+                activeCategory = "Pasta";
+            } else if (id == R.id.btnCatBeverage) {
+                activeCategory = "Beverage";
+            }
 
             tv.setBackgroundResource(R.drawable.category_chip_selected);
             tv.setTextColor(Color.WHITE);
@@ -106,11 +171,14 @@ public class HomeFragment extends Fragment {
         btnCatPasta.setOnClickListener(listener);
         btnCatBeverage.setOnClickListener(listener);
 
-        // Default select ALL
-        btnCatAll.performClick();
+        btnCatAll.setBackgroundResource(R.drawable.category_chip_selected);
+        btnCatAll.setTextColor(Color.WHITE);
     }
 
     private void applyCategoryFilter() {
+        if (originalProducts == null || originalProducts.isEmpty()) {
+            return;
+        }
 
         if (activeCategory.equals("All")) {
             adapter.setItems(originalProducts);
@@ -121,7 +189,7 @@ public class HomeFragment extends Fragment {
 
         for (Product p : originalProducts) {
             if (p.getCategory() != null &&
-                    p.getCategory().equalsIgnoreCase(activeCategory)) {
+                    p.getCategory().toLowerCase().contains(activeCategory.toLowerCase())) {
                 filtered.add(p);
             }
         }
@@ -147,8 +215,13 @@ public class HomeFragment extends Fragment {
                 new ArrayList<>(originalProducts),
                 isGrid,
                 product -> {
-                    Toast.makeText(getContext(),
-                            product.getTitle() + " added to cart", Toast.LENGTH_SHORT).show();
+                    if (cartHandler != null) {
+                        cartHandler.addToCart(product);
+                        Toast.makeText(getContext(),
+                                product.getTitle() + " added to cart", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "You must be logged in to add items", Toast.LENGTH_SHORT).show();
+                    }
                 }
         );
 
@@ -239,8 +312,6 @@ public class HomeFragment extends Fragment {
         menuRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 for (QueryDocumentSnapshot doc : task.getResult()) {
-
-                    // Extract Firestore fields
                     String id = doc.getId();
                     String name = doc.getString("name");
                     String desc = doc.getString("description");
@@ -248,7 +319,6 @@ public class HomeFragment extends Fragment {
                     Double price = doc.getDouble("price");
                     String category = doc.getString("category");
 
-                    // Convert to Product
                     Product p = new Product(
                             id,
                             name,
@@ -261,7 +331,8 @@ public class HomeFragment extends Fragment {
                     originalProducts.add(p);
                 }
 
-                adapter.setItems(originalProducts);
+                // FIXED: Call this AFTER the loop finishes
+                applyCategoryFilter();
 
             } else {
                 Toast.makeText(getContext(),
@@ -270,5 +341,4 @@ public class HomeFragment extends Fragment {
             swipeRefresh.setRefreshing(false);
         });
     }
-
 }

@@ -101,16 +101,14 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-
-
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        // Auto-login if already authenticated
-//        FirebaseUser currentUser = mAuth.getCurrentUser();
-//        if (currentUser != null) {
-//            startActivity(new Intent(this, HomeActivity.class));
-//            finish();
-//        }
-//    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Auto-login if already authenticated
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
+        }
+    }
 }

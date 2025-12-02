@@ -29,6 +29,9 @@
         <!-- Edit Profile screen -->
         <activity android:name=".EditProfileActivity" />
 
+        <!-- Checkout screen -->
+        <activity android:name=".CheckoutActivity" />
+
     </application>
 
 </manifest>
