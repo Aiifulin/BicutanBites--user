@@ -93,10 +93,60 @@ public class CartFragment extends Fragment {
             public void onDecrease(CheckoutItem item) {
                 updateQuantity(item, -1);
             }
+
+            // --- NEW: HANDLE DELETE ---
+            @Override
+            public void onDelete(CheckoutItem item) {
+                showDeleteConfirmation(item);
+            }
         });
 
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCart.setAdapter(adapter);
+    }
+
+    // Helper method for Delete Confirmation
+    private void showDeleteConfirmation(CheckoutItem item) {
+        if (getContext() == null) return;
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(getContext())
+                .setTitle("Remove Item")
+                .setMessage("Are you sure you want to remove " + item.getName() + " from your cart?")
+                .setPositiveButton("Remove", (d, which) -> {
+                    deleteItemFromFirestore(item);
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+
+        dialog.show();
+
+        // Fix button colors (Same logic used for Address Dialog)
+        android.widget.Button positiveBtn = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+        android.widget.Button negativeBtn = dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
+
+        if (positiveBtn != null) {
+            positiveBtn.setBackground(null);
+            positiveBtn.setTextColor(android.graphics.Color.RED); // Red for delete
+        }
+        if (negativeBtn != null) {
+            negativeBtn.setBackground(null);
+            negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
+        }
+    }
+
+    private void deleteItemFromFirestore(CheckoutItem item) {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null || item.getDocumentId() == null) return;
+
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .collection("cart")
+                .document(item.getDocumentId())
+                .delete()
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(getContext(), "Item removed", Toast.LENGTH_SHORT).show()
+                );
     }
 
     private void updateQuantity(CheckoutItem item, int change) {

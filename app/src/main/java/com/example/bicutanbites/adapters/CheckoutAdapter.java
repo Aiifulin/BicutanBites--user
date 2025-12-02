@@ -4,9 +4,9 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton; // Changed from ImageView
-import android.widget.TextView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,15 +22,15 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
 
     private final Context context;
     private final List<CheckoutItem> items;
-    private final CartActionListener listener; // Interface listener
+    private final CartActionListener listener;
 
-    // 1. Define Interface
+    // 1. UPDATE INTERFACE
     public interface CartActionListener {
         void onIncrease(CheckoutItem item);
         void onDecrease(CheckoutItem item);
+        void onDelete(CheckoutItem item); // NEW
     }
 
-    // 2. Update Constructor
     public CheckoutAdapter(Context context, List<CheckoutItem> items, CartActionListener listener) {
         this.context = context;
         this.items = items;
@@ -48,23 +48,21 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CheckoutItem item = items.get(position);
 
-        String name = item.getName();
-        String imageUrl = item.getImageUrl();
-        int qty = item.getQty();
-        double price = item.getPrice();
-
-        holder.productName.setText(name);
-        holder.productQuantity.setText(String.valueOf(qty)); // Just the number now
-        holder.productPrice.setText(String.format(Locale.getDefault(), "₱%.2f", price * qty));
+        holder.productName.setText(item.getName());
+        holder.productQuantity.setText(String.valueOf(item.getQty()));
+        holder.productPrice.setText(String.format(Locale.getDefault(), "₱%.2f", item.getPrice() * item.getQty()));
 
         Glide.with(context)
-                .load(imageUrl)
+                .load(item.getImageUrl())
                 .placeholder(R.drawable.placeholder)
                 .into(holder.productImage);
 
-        // 3. Set Click Listeners
+        // Listeners
         holder.btnIncrease.setOnClickListener(v -> listener.onIncrease(item));
         holder.btnDecrease.setOnClickListener(v -> listener.onDecrease(item));
+
+        // 2. BIND DELETE LISTENER
+        holder.btnDelete.setOnClickListener(v -> listener.onDelete(item));
     }
 
     @Override
@@ -75,7 +73,8 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView productImage;
         TextView productName, productQuantity, productPrice;
-        ImageButton btnIncrease, btnDecrease; // Add buttons
+        TextView btnIncrease, btnDecrease;
+        ImageButton btnDelete; // NEW
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -85,6 +84,9 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
             productPrice = itemView.findViewById(R.id.product_price);
             btnIncrease = itemView.findViewById(R.id.btn_increase);
             btnDecrease = itemView.findViewById(R.id.btn_decrease);
+
+            // 3. FIND DELETE BUTTON
+            btnDelete = itemView.findViewById(R.id.btn_delete);
         }
     }
 }
