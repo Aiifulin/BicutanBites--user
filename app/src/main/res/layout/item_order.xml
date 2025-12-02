@@ -23,7 +23,7 @@
                 android:layout_height="wrap_content"
                 android:text="ORD-001"
                 android:textColor="@color/text_primary"
-                android.textStyle="bold" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/order_status"
