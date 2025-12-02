@@ -11,7 +11,7 @@
         <!-- Gradient Header -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="140dp"
+            android:layout_height="100dp"
             android:padding="16dp"
             android:orientation="vertical"
             android:gravity="center_vertical"
@@ -78,35 +78,6 @@
 
             </RelativeLayout>
 
-            <!-- Restaurant Card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="12dp">
-
-                <TextView
-                    android:text="International Cuisine • 4.8 ★"
-                    android:textColor="@android:color/white"
-                    android:layout_marginTop="2dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="6dp">
-
-                    <TextView
-                        android:text="🚚 Free Delivery    ⏱ 30–40 min"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                </LinearLayout>
-
-            </LinearLayout>
 
         </LinearLayout>
 
