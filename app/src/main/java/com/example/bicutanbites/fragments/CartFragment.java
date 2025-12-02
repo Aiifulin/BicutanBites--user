@@ -93,10 +93,60 @@ public class CartFragment extends Fragment {
             public void onDecrease(CheckoutItem item) {
                 updateQuantity(item, -1);
             }
+
+            // --- NEW: HANDLE DELETE ---
+            @Override
+            public void onDelete(CheckoutItem item) {
+                showDeleteConfirmation(item);
+            }
         });
 
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCart.setAdapter(adapter);
+    }
+
+    // Helper method for Delete Confirmation
+    private void showDeleteConfirmation(CheckoutItem item) {
+        if (getContext() == null) return;
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(getContext())
+                .setTitle("Remove Item")
+                .setMessage("Are you sure you want to remove " + item.getName() + " from your cart?")
+                .setPositiveButton("Remove", (d, which) -> {
+                    deleteItemFromFirestore(item);
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+
+        dialog.show();
+
+        // Fix button colors (Same logic used for Address Dialog)
+        android.widget.Button positiveBtn = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+        android.widget.Button negativeBtn = dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
+
+        if (positiveBtn != null) {
+            positiveBtn.setBackground(null);
+            positiveBtn.setTextColor(android.graphics.Color.RED); // Red for delete
+        }
+        if (negativeBtn != null) {
+            negativeBtn.setBackground(null);
+            negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
+        }
+    }
+
+    private void deleteItemFromFirestore(CheckoutItem item) {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null || item.getDocumentId() == null) return;
+
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .collection("cart")
+                .document(item.getDocumentId())
+                .delete()
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(getContext(), "Item removed", Toast.LENGTH_SHORT).show()
+                );
     }
 
     private void updateQuantity(CheckoutItem item, int change) {
@@ -170,23 +220,27 @@ public class CartFragment extends Fragment {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String address = documentSnapshot.getString("address");
+                        String phone = documentSnapshot.getString("phoneNumber"); // Get Phone
 
-                        // --- UPDATED VALIDATION LOGIC ---
-                        if (address == null || address.trim().isEmpty()) {
-                            // CASE 1: Completely Empty
-                            showAddressDialog("Missing Address",
-                                    "You do not have a delivery address saved.");
+                        // --- VALIDATION: Check Address AND Phone ---
+                        if (address == null || address.trim().isEmpty() ||
+                                phone == null || phone.trim().isEmpty()) {
+
+                            // CASE 1: Completely Empty Info
+                            showAddressDialog("Missing Information",
+                                    "To place an order, you must provide your Home Address and Phone Number in your profile.");
                             btnPlaceOrder.setEnabled(true);
+
                         }
                         else if (!isAddressValid(address)) {
-                            // CASE 2: Invalid Format (Too short or missing numbers)
+                            // CASE 2: Invalid Address Format
                             showAddressDialog("Invalid Address",
                                     "Your address is too short or vague. Please include your House/Unit Number and Street Name.");
                             btnPlaceOrder.setEnabled(true);
                         }
                         else {
                             // CASE 3: Valid -> Place Order
-                            performPlaceOrder(db, uid, address);
+                            performPlaceOrder(db, uid, address, phone);
                         }
                     } else {
                         Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
@@ -232,7 +286,7 @@ public class CartFragment extends Fragment {
         negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
     }
 
-    private void performPlaceOrder(FirebaseFirestore db, String uid, String deliveryAddress) {
+    private void performPlaceOrder(FirebaseFirestore db, String uid, String deliveryAddress, String contactPhone) {
         // Get Input Data
         String note = etNotes.getText().toString().trim();
 
@@ -252,8 +306,9 @@ public class CartFragment extends Fragment {
         orderMap.put("note", note);
         orderMap.put("paymentMethod", paymentMethod);
 
-        // Save the address in the order too, in case the user changes it later!
+        // Save the address and phone in the order too!
         orderMap.put("deliveryAddress", deliveryAddress);
+        orderMap.put("contactPhone", contactPhone);
 
         WriteBatch batch = db.batch();
         batch.set(db.collection("orders").document(orderId), orderMap);
@@ -272,18 +327,18 @@ public class CartFragment extends Fragment {
                     });
                 });
     }
+
     private boolean isAddressValid(String address) {
         if (address == null) return false;
         String trimmed = address.trim();
 
         // Rule 1: Must be at least 10 characters long
-        // (e.g. "123 Main St" is 11 chars. "Taguig" is only 6 chars, which is too vague for delivery)
         if (trimmed.length() < 10) return false;
 
         // Rule 2: Must contain at least one digit (House number or Zip code)
         if (!trimmed.matches(".*\\d.*")) return false;
 
-        // Rule 3: Must contain at least one letter (Prevents random phone numbers like "091234567")
+        // Rule 3: Must contain at least one letter
         if (!trimmed.matches(".*[a-zA-Z].*")) return false;
 
         return true;

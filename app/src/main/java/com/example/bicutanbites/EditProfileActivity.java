@@ -2,7 +2,6 @@ package com.example.bicutanbites;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -30,10 +29,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class EditProfileActivity extends AppCompatActivity {
 
-    private TextInputEditText editName, editEmail, editAddress;
+    private TextInputEditText editName, editEmail, editAddress, editPhone;
     private Button saveButton, changePasswordButton;
     private ImageView profileImage;
 
@@ -53,7 +53,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         toolbar.setNavigationOnClickListener(v -> finish());
 
         mAuth = FirebaseAuth.getInstance();
@@ -69,6 +69,7 @@ public class EditProfileActivity extends AppCompatActivity {
         editName = findViewById(R.id.edit_name);
         editEmail = findViewById(R.id.edit_email);
         editAddress = findViewById(R.id.edit_address);
+        editPhone = findViewById(R.id.edit_phone); // NEW: Phone field
         saveButton = findViewById(R.id.save_button);
         changePasswordButton = findViewById(R.id.change_password_button);
 
@@ -85,17 +86,20 @@ public class EditProfileActivity extends AppCompatActivity {
                 String name = documentSnapshot.getString("name");
                 String email = documentSnapshot.getString("email");
                 String address = documentSnapshot.getString("address");
+                String phone = documentSnapshot.getString("phoneNumber"); // NEW: Get phone
                 String imagePath = documentSnapshot.getString("profileImage");
 
                 editName.setText(name);
                 editEmail.setText(email);
                 editAddress.setText(address);
+                editPhone.setText(phone); // NEW: Set phone text
 
                 if (imagePath != null && !imagePath.isEmpty()) {
                     File imageFile = new File(imagePath);
                     Glide.with(this)
                             .load(imageFile)
                             .signature(new ObjectKey(imageFile.lastModified()))
+                            .placeholder(R.drawable.ic_account_circle)
                             .into(profileImage);
                 }
             }
@@ -105,23 +109,30 @@ public class EditProfileActivity extends AppCompatActivity {
     private void handleImageSelection(Uri uri) {
         if (uri != null) {
             selectedImageUri = uri;
-            // Use Glide to prevent memory crashes with large images
             Glide.with(this).load(uri).into(profileImage);
         }
     }
 
     private void saveProfileChanges() {
-        String name = editName.getText().toString().trim();
-        String email = editEmail.getText().toString().trim();
-        String address = editAddress.getText().toString().trim();
+        String name = Objects.requireNonNull(editName.getText()).toString().trim();
+        String email = Objects.requireNonNull(editEmail.getText()).toString().trim();
+        String address = Objects.requireNonNull(editAddress.getText()).toString().trim();
+        String phone = Objects.requireNonNull(editPhone.getText()).toString().trim(); // NEW: Get phone
+
+        // Validating important fields
+        if (name.isEmpty() || address.isEmpty() || phone.isEmpty()) {
+            Toast.makeText(this, "Please fill out Name, Address, and Phone Number", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", name);
         updates.put("email", email);
         updates.put("address", address);
+        updates.put("phoneNumber", phone); // NEW: Save phone
 
         if (selectedImageUri != null) {
-            String imagePath = saveImageToInternalStorage(selectedImageUri, mAuth.getCurrentUser().getUid());
+            String imagePath = saveImageToInternalStorage(selectedImageUri, Objects.requireNonNull(mAuth.getCurrentUser()).getUid());
             if (imagePath != null) {
                 updates.put("profileImage", imagePath);
             }
@@ -151,7 +162,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         cancelButton.setOnClickListener(v -> dialog.dismiss());
         confirmButton.setOnClickListener(v -> {
-            String password = currentPassword.getText().toString();
+            String password = Objects.requireNonNull(currentPassword.getText()).toString();
             if (password.isEmpty()) {
                 Toast.makeText(this, "Please enter your current password", Toast.LENGTH_SHORT).show();
                 return;
@@ -192,8 +203,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
         cancelButton.setOnClickListener(v -> dialog.dismiss());
         saveButton.setOnClickListener(v -> {
-            String newPass = newPassword.getText().toString();
-            String confirmPass = confirmNewPassword.getText().toString();
+            String newPass = Objects.requireNonNull(newPassword.getText()).toString();
+            String confirmPass = Objects.requireNonNull(confirmNewPassword.getText()).toString();
 
             if (newPass.isEmpty() || confirmPass.isEmpty()) {
                 Toast.makeText(this, "Please fill out both fields", Toast.LENGTH_SHORT).show();

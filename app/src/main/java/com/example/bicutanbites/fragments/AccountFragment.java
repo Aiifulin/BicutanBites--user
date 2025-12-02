@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.signature.ObjectKey;
 import com.example.bicutanbites.EditProfileActivity;
 import com.example.bicutanbites.LoginActivity;
+import com.example.bicutanbites.NotificationsActivity;
 import com.example.bicutanbites.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,6 +54,7 @@ public class AccountFragment extends Fragment {
 
         LinearLayout personalInfoBtn = view.findViewById(R.id.personal_info_btn);
         LinearLayout myOrdersBtn = view.findViewById(R.id.my_orders_btn);
+        LinearLayout notificationsBtn = view.findViewById(R.id.notifications_btn); // NEW
 
         auth = FirebaseAuth.getInstance();
 
@@ -66,6 +68,7 @@ public class AccountFragment extends Fragment {
 
         // Click listeners
         personalInfoBtn.setOnClickListener(v -> startActivity(new Intent(getActivity(), EditProfileActivity.class)));
+
         myOrdersBtn.setOnClickListener(v -> {
             // More robust way to get the BottomNavigationView without knowing the Activity class
             if (getActivity() != null) {
@@ -74,6 +77,11 @@ public class AccountFragment extends Fragment {
                     bottomNav.setSelectedItemId(R.id.nav_orders);
                 }
             }
+        });
+        // Notifications Click Listener
+        notificationsBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), NotificationsActivity.class);
+            startActivity(intent);
         });
         logoutBtn.setOnClickListener(v -> logoutUser());
 

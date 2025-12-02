@@ -1,9 +1,11 @@
 package com.example.bicutanbites.fragments;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,9 +58,53 @@ public class OrdersFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new OrderHistoryAdapter(getContext(), orderHistory);
+        // Updated to pass the Listener
+        adapter = new OrderHistoryAdapter(getContext(), orderHistory, new OrderHistoryAdapter.OrderActionListener() {
+            @Override
+            public void onCancelOrder(Order order) {
+                showCancelConfirmation(order);
+            }
+        });
+
         recyclerOrders.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerOrders.setAdapter(adapter);
+    }
+
+    private void showCancelConfirmation(Order order) {
+        if (getContext() == null) return;
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setTitle("Cancel Order")
+                .setMessage("Are you sure you want to cancel this order?")
+                .setPositiveButton("Yes", (d, which) -> {
+                    cancelOrderInFirestore(order);
+                })
+                .setNegativeButton("No", null)
+                .show();
+
+        Button positiveBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeBtn = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+        // A. Remove the Orange Background (Reset to transparent)
+        positiveBtn.setBackground(null);
+        negativeBtn.setBackground(null);
+
+        // B. Change the Text Color to Black/Grey (instead of Orange)
+        positiveBtn.setTextColor(android.graphics.Color.BLACK);
+        negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
+    }
+
+    private void cancelOrderInFirestore(Order order) {
+        FirebaseFirestore.getInstance()
+                .collection("orders")
+                .document(order.getOrderId())
+                .update("status", "Cancelled")
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(getContext(), "Order Cancelled", Toast.LENGTH_SHORT).show()
+                )
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to cancel: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 
     private void loadOrdersRealTime() {

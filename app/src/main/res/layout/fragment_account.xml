@@ -27,7 +27,6 @@
                 android:src="@drawable/ic_account_circle" />
         </com.google.android.material.card.MaterialCardView>
 
-
         <TextView
             android:id="@+id/profile_name"
             android:layout_width="wrap_content"
@@ -53,6 +52,7 @@
             android:layout_marginTop="24dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
+            android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp">
@@ -62,7 +62,8 @@
                 android:layout_height="40dp"
                 android:background="@drawable/bg_account_icon"
                 android:padding="8dp"
-                android:src="@drawable/ic_account" />
+                android:src="@drawable/ic_account"
+                app:tint="@color/brand_orange"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -81,14 +82,15 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Update your details" />
+                    android:text="Update your details"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_chevron_right" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -98,6 +100,7 @@
             android:layout_marginTop="12dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
+            android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp">
@@ -107,7 +110,8 @@
                 android:layout_height="40dp"
                 android:background="@drawable/bg_account_icon"
                 android:padding="8dp"
-                android:src="@drawable/ic_orders" />
+                android:src="@drawable/ic_orders"
+                app:tint="@color/brand_orange"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -126,16 +130,64 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Track your past orders" />
+                    android:text="Track your past orders"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_chevron_right" />
-
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/notifications_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_account_icon"
+                android:padding="8dp"
+                android:src="@drawable/ic_notifications"
+                app:tint="@color/brand_orange"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notifications"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Manage your notifications"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/logout_button"
@@ -144,6 +196,7 @@
             android:layout_marginTop="24dp"
             android:background="@drawable/bg_logout_button"
             android:clickable="true"
+            android:focusable="true"
             android:drawableStart="@drawable/ic_logout"
             android:drawablePadding="12dp"
             android:gravity="center_vertical"
@@ -151,7 +204,6 @@
             android:text="Log Out"
             android:textColor="#D32F2F"
             android:textStyle="bold" />
-
 
     </LinearLayout>
 </ScrollView>
