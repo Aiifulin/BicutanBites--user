@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.*;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,11 +93,9 @@ public class CreateAccountActivity extends AppCompatActivity {
                 if (user != null) {
                     String uid = user.getUid();
                     if (selectedImageUri != null) {
-                        // Image was selected, save it locally
                         String localImagePath = saveImageToInternalStorage(selectedImageUri, uid);
                         saveUserToFirestore(uid, name, email, localImagePath);
                     } else {
-                        // No image selected
                         saveUserToFirestore(uid, name, email, null);
                     }
                 }
@@ -111,7 +111,6 @@ public class CreateAccountActivity extends AppCompatActivity {
     private String saveImageToInternalStorage(Uri uri, String userId) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            // Create a file in the app's private directory
             File file = new File(getDir("profile_images", Context.MODE_PRIVATE), userId + ".jpg");
             OutputStream outputStream = new FileOutputStream(file);
 
@@ -125,7 +124,7 @@ public class CreateAccountActivity extends AppCompatActivity {
             inputStream.close();
 
             Log.d(TAG, "Image saved locally to: " + file.getAbsolutePath());
-            return file.getAbsolutePath(); // Return the path
+            return file.getAbsolutePath();
 
         } catch (Exception e) {
             Log.e(TAG, "Failed to save image locally", e);
@@ -135,31 +134,35 @@ public class CreateAccountActivity extends AppCompatActivity {
     }
 
     private void saveUserToFirestore(String uid, String name, String email, String imagePath) {
+
         Map<String, Object> userData = new HashMap<>();
         userData.put("uid", uid);
         userData.put("name", name);
         userData.put("email", email);
         userData.put("profileImage", imagePath);
-
-        // Initialize empty fields to avoid null errors later
         userData.put("address", "");
         userData.put("phoneNumber", "");
-
-        // Add the DateCreated field (Saves current timestamp)
         userData.put("dateCreated", new Date());
 
-        db.collection("users").document(uid)
-                .set(userData)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show();
+        // 1. Get FCM Token and save it
+        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token -> {
+            userData.put("fcmToken", token);
 
-                    mAuth.signOut();
-                    startActivity(new Intent(this, LoginActivity.class));
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Firestore error", e);
-                    Toast.makeText(this, "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+            // 2. Save complete user data to Firestore
+            db.collection("users").document(uid)
+                    .set(userData)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show();
+                        mAuth.signOut();
+                        startActivity(new Intent(this, LoginActivity.class));
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Firestore error", e);
+                        Toast.makeText(this, "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+        });
+
+        // NOTE: Removed the redundant .set(userData) call outside the token success listener.
     }
 }

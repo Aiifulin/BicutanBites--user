@@ -11,6 +11,9 @@ import com.example.bicutanbites.fragments.AccountFragment;
 import com.example.bicutanbites.fragments.HomeFragment;
 import com.example.bicutanbites.fragments.OrdersFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -23,6 +26,15 @@ public class HomeActivity extends AppCompatActivity {
 
         bottomNavigation = findViewById(R.id.bottom_navigation);
         bottomNavigation.setOnNavigationItemSelectedListener(this::onNavItemSelected);
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    FirebaseFirestore.getInstance().collection("users")
+                            .document(uid)
+                            .update("fcmToken", token);
+                });
+
 
         // Load HomeFragment by default
         getSupportFragmentManager()
