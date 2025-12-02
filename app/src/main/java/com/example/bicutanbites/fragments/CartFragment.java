@@ -220,23 +220,27 @@ public class CartFragment extends Fragment {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String address = documentSnapshot.getString("address");
+                        String phone = documentSnapshot.getString("phoneNumber"); // Get Phone
 
-                        // --- UPDATED VALIDATION LOGIC ---
-                        if (address == null || address.trim().isEmpty()) {
-                            // CASE 1: Completely Empty
-                            showAddressDialog("Missing Address",
-                                    "You do not have a delivery address saved.");
+                        // --- VALIDATION: Check Address AND Phone ---
+                        if (address == null || address.trim().isEmpty() ||
+                                phone == null || phone.trim().isEmpty()) {
+
+                            // CASE 1: Completely Empty Info
+                            showAddressDialog("Missing Information",
+                                    "To place an order, you must provide your Home Address and Phone Number in your profile.");
                             btnPlaceOrder.setEnabled(true);
+
                         }
                         else if (!isAddressValid(address)) {
-                            // CASE 2: Invalid Format (Too short or missing numbers)
+                            // CASE 2: Invalid Address Format
                             showAddressDialog("Invalid Address",
                                     "Your address is too short or vague. Please include your House/Unit Number and Street Name.");
                             btnPlaceOrder.setEnabled(true);
                         }
                         else {
                             // CASE 3: Valid -> Place Order
-                            performPlaceOrder(db, uid, address);
+                            performPlaceOrder(db, uid, address, phone);
                         }
                     } else {
                         Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
@@ -282,7 +286,7 @@ public class CartFragment extends Fragment {
         negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
     }
 
-    private void performPlaceOrder(FirebaseFirestore db, String uid, String deliveryAddress) {
+    private void performPlaceOrder(FirebaseFirestore db, String uid, String deliveryAddress, String contactPhone) {
         // Get Input Data
         String note = etNotes.getText().toString().trim();
 
@@ -302,8 +306,9 @@ public class CartFragment extends Fragment {
         orderMap.put("note", note);
         orderMap.put("paymentMethod", paymentMethod);
 
-        // Save the address in the order too, in case the user changes it later!
+        // Save the address and phone in the order too!
         orderMap.put("deliveryAddress", deliveryAddress);
+        orderMap.put("contactPhone", contactPhone);
 
         WriteBatch batch = db.batch();
         batch.set(db.collection("orders").document(orderId), orderMap);
@@ -322,18 +327,18 @@ public class CartFragment extends Fragment {
                     });
                 });
     }
+
     private boolean isAddressValid(String address) {
         if (address == null) return false;
         String trimmed = address.trim();
 
         // Rule 1: Must be at least 10 characters long
-        // (e.g. "123 Main St" is 11 chars. "Taguig" is only 6 chars, which is too vague for delivery)
         if (trimmed.length() < 10) return false;
 
         // Rule 2: Must contain at least one digit (House number or Zip code)
         if (!trimmed.matches(".*\\d.*")) return false;
 
-        // Rule 3: Must contain at least one letter (Prevents random phone numbers like "091234567")
+        // Rule 3: Must contain at least one letter
         if (!trimmed.matches(".*[a-zA-Z].*")) return false;
 
         return true;

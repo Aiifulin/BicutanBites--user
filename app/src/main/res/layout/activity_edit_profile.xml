@@ -57,7 +57,6 @@
                     android:id="@+id/edit_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -70,15 +69,28 @@
                     android:id="@+id/edit_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:enabled="false"
                     android:inputType="textEmailAddress" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="Home Address">
+                android:hint="Phone Number *">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Home Address *">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_address"
@@ -86,7 +98,6 @@
                     android:layout_height="wrap_content"
                     android:gravity="top"
                     android:minLines="3" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -101,19 +112,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Change Password" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Payment Information"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Default: Cash on Delivery" />
 
             <Button
                 android:id="@+id/save_button"

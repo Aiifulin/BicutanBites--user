@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date; // Import Date
 import java.util.HashMap;
 import java.util.Map;
 
@@ -138,13 +139,21 @@ public class CreateAccountActivity extends AppCompatActivity {
         userData.put("uid", uid);
         userData.put("name", name);
         userData.put("email", email);
-        userData.put("profileImage", imagePath); // Can be a local path or null
-        userData.put("address", ""); // Add an empty address field
+        userData.put("profileImage", imagePath);
+
+        // Initialize empty fields to avoid null errors later
+        userData.put("address", "");
+        userData.put("phoneNumber", "");
+
+        // Add the DateCreated field (Saves current timestamp)
+        userData.put("dateCreated", new Date());
 
         db.collection("users").document(uid)
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show();
+
+                    mAuth.signOut();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })

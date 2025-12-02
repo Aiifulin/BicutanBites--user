@@ -32,6 +32,11 @@
         <!-- Checkout screen -->
         <activity android:name=".CheckoutActivity" />
 
+        <activity
+            android:name=".NotificationsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BicutanBites" />
+
     </application>
 
 </manifest>
