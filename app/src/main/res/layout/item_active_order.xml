@@ -161,6 +161,17 @@
         </LinearLayout>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tv_cancel_disclaimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:text="Cancellation is only available for Pending orders."
+        android:textColor="#E91E63"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
     <Button
         android:id="@+id/btn_cancel_order"
         style="@style/Widget.MaterialComponents.Button.TextButton"

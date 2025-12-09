@@ -10,7 +10,9 @@
         android:label="Bicutan Bites"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BicutanBites">
+        android:theme="@style/Theme.BicutanBites"
+        android:enableOnBackInvokedCallback="true">
+
 
         <!-- Login screen as launcher -->
         <activity android:name=".LoginActivity" android:exported="true">

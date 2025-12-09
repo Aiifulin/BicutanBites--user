@@ -11,7 +11,7 @@
         <!-- Gradient Header -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="140dp"
+            android:layout_height="100dp"
             android:padding="16dp"
             android:orientation="vertical"
             android:gravity="center_vertical"
@@ -79,34 +79,6 @@
             </RelativeLayout>
 
             <!-- Restaurant Card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="12dp">
-
-                <TextView
-                    android:text="International Cuisine • 4.8 ★"
-                    android:textColor="@android:color/white"
-                    android:layout_marginTop="2dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="6dp">
-
-                    <TextView
-                        android:text="🚚 Free Delivery    ⏱ 30–40 min"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                </LinearLayout>
-
-            </LinearLayout>
 
         </LinearLayout>
 
@@ -185,7 +157,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- ALL -->
                 <TextView
                     android:id="@+id/btnCatAll"
                     style="@style/CategoryChip"
@@ -193,30 +164,68 @@
                     android:layout_height="wrap_content"
                     android:text="All" />
 
-                <!-- BURGER -->
                 <TextView
-                    android:id="@+id/btnCatBurger"
+                    android:id="@+id/btnCatSandwiches"
                     style="@style/CategoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Burger" />
+                    android:text="Sandwiches and Rolls" />
 
-                <!-- PASTA -->
                 <TextView
-                    android:id="@+id/btnCatPasta"
+                    android:id="@+id/btnCatSizzling"
                     style="@style/CategoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pasta" />
+                    android:text="Sizzling Specials" />
 
-                <!-- BEVERAGE -->
                 <TextView
-                    android:id="@+id/btnCatBeverage"
+                    android:id="@+id/btnCatPastaNoodles"
                     style="@style/CategoryChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Beverage" />
+                    android:text="Pasta and Noodles" />
 
+                <TextView
+                    android:id="@+id/btnCatChickenMeats"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chicken and Meats" />
+
+                <TextView
+                    android:id="@+id/btnCatAppetizers"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Appetizers/Sides" />
+
+                <TextView
+                    android:id="@+id/btnCatNoodleSoup"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Noodle Soup" />
+
+                <TextView
+                    android:id="@+id/btnCatFilipino"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filipino Classics" />
+
+                <TextView
+                    android:id="@+id/btnCatDesserts"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Desserts" />
+
+                <TextView
+                    android:id="@+id/btnCatBeverages"
+                    style="@style/CategoryChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Beverages" />
             </LinearLayout>
         </HorizontalScrollView>
 

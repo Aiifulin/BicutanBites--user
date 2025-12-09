@@ -50,7 +50,9 @@ public class HomeFragment extends Fragment {
     private SwipeRefreshLayout swipeRefresh;
     private CartHandler cartHandler;
 
-    private TextView btnCatAll, btnCatBurger, btnCatPasta, btnCatBeverage;
+    private TextView btnCatAll, btnCatSandwiches, btnCatSizzling, btnCatPastaNoodles,
+            btnCatChickenMeats, btnCatAppetizers, btnCatNoodleSoup, btnCatFilipino,
+            btnCatDesserts, btnCatBeverages;
     private String activeCategory = "All";
 
     @Nullable
@@ -73,9 +75,15 @@ public class HomeFragment extends Fragment {
 
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
         btnCatAll = view.findViewById(R.id.btnCatAll);
-        btnCatBurger = view.findViewById(R.id.btnCatBurger);
-        btnCatPasta = view.findViewById(R.id.btnCatPasta);
-        btnCatBeverage = view.findViewById(R.id.btnCatBeverage);
+        btnCatSandwiches = view.findViewById(R.id.btnCatSandwiches);
+        btnCatSizzling = view.findViewById(R.id.btnCatSizzling);
+        btnCatPastaNoodles = view.findViewById(R.id.btnCatPastaNoodles);
+        btnCatChickenMeats = view.findViewById(R.id.btnCatChickenMeats);
+        btnCatAppetizers = view.findViewById(R.id.btnCatAppetizers);
+        btnCatNoodleSoup = view.findViewById(R.id.btnCatNoodleSoup);
+        btnCatFilipino = view.findViewById(R.id.btnCatFilipino);
+        btnCatDesserts = view.findViewById(R.id.btnCatDesserts);
+        btnCatBeverages = view.findViewById(R.id.btnCatBeverages);
 
         // Initialize CartHandler
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
@@ -149,15 +157,28 @@ public class HomeFragment extends Fragment {
             resetCategoryStyles();
             TextView tv = (TextView) v;
 
+            // Map the button's ID to the exact Firestore category string (using '&')
             int id = v.getId();
             if (id == R.id.btnCatAll) {
                 activeCategory = "All";
-            } else if (id == R.id.btnCatBurger) {
-                activeCategory = "Burger";
-            } else if (id == R.id.btnCatPasta) {
-                activeCategory = "Pasta";
-            } else if (id == R.id.btnCatBeverage) {
-                activeCategory = "Beverage";
+            } else if (id == R.id.btnCatSandwiches) {
+                activeCategory = "Sandwiches & Rolls"; // Matches Firestore Key
+            } else if (id == R.id.btnCatSizzling) {
+                activeCategory = "Sizzling Specials";
+            } else if (id == R.id.btnCatPastaNoodles) {
+                activeCategory = "Pasta & Noodles"; // Matches Firestore Key
+            } else if (id == R.id.btnCatChickenMeats) {
+                activeCategory = "Chicken & Meats"; // Matches Firestore Key
+            } else if (id == R.id.btnCatAppetizers) {
+                activeCategory = "Appetizers/Sides"; // Matches Firestore Key
+            } else if (id == R.id.btnCatNoodleSoup) {
+                activeCategory = "Noodle Soup";
+            } else if (id == R.id.btnCatFilipino) {
+                activeCategory = "Filipino Classics";
+            } else if (id == R.id.btnCatDesserts) {
+                activeCategory = "Desserts";
+            } else if (id == R.id.btnCatBeverages) {
+                activeCategory = "Beverages";
             }
 
             tv.setBackgroundResource(R.drawable.category_chip_selected);
@@ -166,11 +187,19 @@ public class HomeFragment extends Fragment {
             applyCategoryFilter();
         };
 
+        // Apply the listener to all category buttons
         btnCatAll.setOnClickListener(listener);
-        btnCatBurger.setOnClickListener(listener);
-        btnCatPasta.setOnClickListener(listener);
-        btnCatBeverage.setOnClickListener(listener);
+        btnCatSandwiches.setOnClickListener(listener);
+        btnCatSizzling.setOnClickListener(listener);
+        btnCatPastaNoodles.setOnClickListener(listener);
+        btnCatChickenMeats.setOnClickListener(listener);
+        btnCatAppetizers.setOnClickListener(listener);
+        btnCatNoodleSoup.setOnClickListener(listener);
+        btnCatFilipino.setOnClickListener(listener);
+        btnCatDesserts.setOnClickListener(listener);
+        btnCatBeverages.setOnClickListener(listener);
 
+        // Set 'All' as the default selected category on load
         btnCatAll.setBackgroundResource(R.drawable.category_chip_selected);
         btnCatAll.setTextColor(Color.WHITE);
     }
@@ -199,14 +228,27 @@ public class HomeFragment extends Fragment {
 
     private void resetCategoryStyles() {
         btnCatAll.setBackgroundResource(R.drawable.category_chip_bg);
-        btnCatBurger.setBackgroundResource(R.drawable.category_chip_bg);
-        btnCatPasta.setBackgroundResource(R.drawable.category_chip_bg);
-        btnCatBeverage.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatSandwiches.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatSizzling.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatPastaNoodles.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatChickenMeats.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatAppetizers.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatNoodleSoup.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatFilipino.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatDesserts.setBackgroundResource(R.drawable.category_chip_bg);
+        btnCatBeverages.setBackgroundResource(R.drawable.category_chip_bg);
+
 
         btnCatAll.setTextColor(Color.BLACK);
-        btnCatBurger.setTextColor(Color.BLACK);
-        btnCatPasta.setTextColor(Color.BLACK);
-        btnCatBeverage.setTextColor(Color.BLACK);
+        btnCatSandwiches.setTextColor(Color.BLACK);
+        btnCatSizzling.setTextColor(Color.BLACK);
+        btnCatPastaNoodles.setTextColor(Color.BLACK);
+        btnCatChickenMeats.setTextColor(Color.BLACK);
+        btnCatAppetizers.setTextColor(Color.BLACK);
+        btnCatNoodleSoup.setTextColor(Color.BLACK);
+        btnCatFilipino.setTextColor(Color.BLACK);
+        btnCatDesserts.setTextColor(Color.BLACK);
+        btnCatBeverages.setTextColor(Color.BLACK);
     }
 
     private void setupRecycler() {
@@ -318,6 +360,8 @@ public class HomeFragment extends Fragment {
                     String imageUrl = doc.getString("imageUrl");
                     Double price = doc.getDouble("price");
                     String category = doc.getString("category");
+                    // NEW: Fetch the availability status (it's a Boolean in Firestore)
+                    Boolean available = doc.getBoolean("available");
 
                     Product p = new Product(
                             id,
@@ -325,7 +369,9 @@ public class HomeFragment extends Fragment {
                             desc,
                             imageUrl,
                             price != null ? price : 0,
-                            category
+                            category,
+                            // NEW: Pass the status to the Product constructor
+                            available != null ? available : true
                     );
 
                     originalProducts.add(p);

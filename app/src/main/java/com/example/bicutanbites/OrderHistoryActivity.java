@@ -12,6 +12,7 @@ import com.example.bicutanbites.models.OrderItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration; // NEW: Import ListenerRegistration
 import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,6 +25,7 @@ public class OrderHistoryActivity extends AppCompatActivity {
     private OrderHistoryAdapter adapter;
     private List<Order> orderHistory = new ArrayList<>();
     private TextView emptyView;
+    private ListenerRegistration historyListener; // NEW: Member variable for the listener
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,56 +39,78 @@ public class OrderHistoryActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         // Setup Recycler (No cancel listener needed anymore)
+        // NOTE: The null passed here assumes your OrderHistoryAdapter constructor
+        // accepts a null listener for history items.
         adapter = new OrderHistoryAdapter(this, orderHistory, null);
         recyclerOrders.setLayoutManager(new LinearLayoutManager(this));
         recyclerOrders.setAdapter(adapter);
 
-        loadCompletedOrders();
+        // RENAMED: Start the real-time listener for history
+        startHistoryListener();
     }
 
-    private void loadCompletedOrders() {
+    // RENAMED METHOD
+    private void startHistoryListener() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            return;
+        }
+
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        FirebaseFirestore.getInstance().collection("orders")
+        // Ensure any previous listener is removed before starting a new one
+        if (historyListener != null) {
+            historyListener.remove();
+        }
+
+        historyListener = FirebaseFirestore.getInstance().collection("orders")
                 .whereEqualTo("userID", uid)
-                .whereIn("status", java.util.Arrays.asList("Completed", "Cancelled")) // <--- UPDATED
+                .whereIn("status", java.util.Arrays.asList("Completed", "Cancelled"))
                 .orderBy("orderedAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
 
                     orderHistory.clear();
+
                     if (value.isEmpty()) {
                         emptyView.setVisibility(android.view.View.VISIBLE);
                         recyclerOrders.setVisibility(android.view.View.GONE);
                     } else {
                         emptyView.setVisibility(android.view.View.GONE);
                         recyclerOrders.setVisibility(android.view.View.VISIBLE);
-                    }
 
-                    for (DocumentSnapshot doc : value) {
-                        // ... (Parsing logic remains the same) ...
-                        String id = doc.getString("orderId");
-                        Date date = doc.getDate("orderedAt");
-                        String status = doc.getString("status");
-                        Double totalObj = doc.getDouble("total");
-                        double total = totalObj != null ? totalObj : 0.0;
-                        String note = doc.getString("note");
+                        for (DocumentSnapshot doc : value) {
+                            String id = doc.getString("orderId");
+                            Date date = doc.getDate("orderedAt");
+                            String status = doc.getString("status");
+                            Double totalObj = doc.getDouble("total");
+                            double total = totalObj != null ? totalObj : 0.0;
+                            String note = doc.getString("note");
 
-                        List<Map<String, Object>> rawItems = (List<Map<String, Object>>) doc.get("items");
-                        List<OrderItem> items = new ArrayList<>();
-                        if (rawItems != null) {
-                            for (Map<String, Object> m : rawItems) {
-                                items.add(new OrderItem(
-                                        (String) m.get("name"),
-                                        ((Number) m.get("qty")).intValue(),
-                                        ((Number) m.get("price")).doubleValue(),
-                                        (String) m.get("imageUrl")
-                                ));
+                            List<Map<String, Object>> rawItems = (List<Map<String, Object>>) doc.get("items");
+                            List<OrderItem> items = new ArrayList<>();
+                            if (rawItems != null) {
+                                for (Map<String, Object> m : rawItems) {
+                                    items.add(new OrderItem(
+                                            (String) m.get("name"),
+                                            ((Number) m.get("qty")).intValue(),
+                                            ((Number) m.get("price")).doubleValue(),
+                                            (String) m.get("imageUrl")
+                                    ));
+                                }
                             }
+                            orderHistory.add(new Order(id, date, status, total, items, note));
                         }
-                        orderHistory.add(new Order(id, date, status, total, items, note));
                     }
                     adapter.notifyDataSetChanged();
                 });
+    }
+
+    // NEW METHOD: Remove the listener when the Activity is destroyed to prevent leaks
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (historyListener != null) {
+            historyListener.remove();
+        }
     }
 }

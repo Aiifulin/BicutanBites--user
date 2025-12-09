@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout; // Import this
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.bicutanbites.R;
 import com.example.bicutanbites.adapters.ActiveOrderAdapter;
@@ -32,11 +32,11 @@ public class OrdersFragment extends Fragment {
 
     private RecyclerView recyclerActiveOrders;
     private TextView tvNoOrders;
-    private SwipeRefreshLayout swipeRefreshLayout; // Declare SwipeRefreshLayout
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private ActiveOrderAdapter adapter;
     private List<Order> activeOrdersList = new ArrayList<>();
-    private ListenerRegistration firestoreListener; // To handle restarts
+    private ListenerRegistration firestoreListener;
 
     @Nullable
     @Override
@@ -45,18 +45,16 @@ public class OrdersFragment extends Fragment {
 
         recyclerActiveOrders = view.findViewById(R.id.recycler_active_orders);
         tvNoOrders = view.findViewById(R.id.tv_no_orders);
-        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh); // Bind View
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
 
         recyclerActiveOrders.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ActiveOrderAdapter(getContext(), activeOrdersList);
         recyclerActiveOrders.setAdapter(adapter);
 
-        // Load initially
         loadActiveOrders();
 
-        // Handle "Swipe to Refresh"
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadActiveOrders(); // Reloads the data
+            loadActiveOrders();
         });
 
         return view;
@@ -70,11 +68,13 @@ public class OrdersFragment extends Fragment {
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // If we are refreshing, remove the old listener first to avoid duplicates
         if (firestoreListener != null) {
             firestoreListener.remove();
         }
 
+        // CORRECT: Statuses that should be visible in the Active Orders list
+        // This is the Firestore filter. If the DB status changes to Completed,
+        // the item should drop out of this listener's result set.
         List<String> activeStatuses = Arrays.asList("Pending", "Being Made", "Being Delivered");
 
         firestoreListener = FirebaseFirestore.getInstance().collection("orders")
@@ -82,7 +82,6 @@ public class OrdersFragment extends Fragment {
                 .whereIn("status", activeStatuses)
                 .orderBy("orderedAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    // Stop the refresh animation once data arrives
                     swipeRefreshLayout.setRefreshing(false);
 
                     if (error != null || value == null) return;
@@ -101,8 +100,11 @@ public class OrdersFragment extends Fragment {
                             Date date = doc.getDate("orderedAt");
                             String status = doc.getString("status");
 
-                            // Because of whereIn query, we don't need manual status filtering anymore.
-                            // If status changes to 'Cancelled', Firestore removes it from 'value' automatically.
+                            // NEW DEFENSIVE CHECK: This should not be needed if Firestore works,
+                            // but it ensures that no completed/cancelled order makes it into the list.
+                            if ("Completed".equalsIgnoreCase(status) || "Cancelled".equalsIgnoreCase(status)) {
+                                continue; // Skip and do not add to active list
+                            }
 
                             Double total = doc.getDouble("total");
                             String note = doc.getString("note");
@@ -129,6 +131,7 @@ public class OrdersFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // Crucial: Remove the listener when the view is destroyed
         if (firestoreListener != null) {
             firestoreListener.remove();
         }

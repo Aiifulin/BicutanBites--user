@@ -2,7 +2,6 @@ package com.example.bicutanbites.adapters;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bicutanbites.R;
 import com.example.bicutanbites.models.Order;
-import com.example.bicutanbites.models.OrderItem; // Make sure this is imported
+import com.example.bicutanbites.models.OrderItem;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
-import java.util.List; // Explicit List import
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -44,13 +43,34 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Order order = orders.get(position);
+        String status = order.getStatus();
 
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
 
         holder.tvDate.setText(order.getOrderDate() != null ? sdf.format(order.getOrderDate()) : "");
         holder.tvOrderId.setText(order.getOrderId());
-        holder.tvStatus.setText(order.getStatus());
+        holder.tvStatus.setText(status);
+
+        // --- Status Color Change Logic ---
+        int statusColor;
+
+        // Use Integer colors from resources for broader compatibility
+        if ("Pending".equalsIgnoreCase(status)) {
+            statusColor = context.getResources().getColor(android.R.color.holo_orange_dark);
+        } else if ("Being Made".equalsIgnoreCase(status)) {
+            statusColor = context.getResources().getColor(android.R.color.holo_blue_dark);
+        } else if ("Being Delivered".equalsIgnoreCase(status)) {
+            statusColor = context.getResources().getColor(android.R.color.holo_purple);
+        } else if ("Completed".equalsIgnoreCase(status)) {
+            statusColor = context.getResources().getColor(android.R.color.holo_green_dark);
+        } else {
+            // Default or Cancelled
+            statusColor = context.getResources().getColor(android.R.color.darker_gray);
+        }
+
+        holder.tvStatus.setTextColor(statusColor);
+        // --- End Status Color Change Logic ---
 
         // Prices
         double deliveryFee = 50.00;
@@ -71,11 +91,17 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         holder.recyclerItems.setLayoutManager(new LinearLayoutManager(context));
         holder.recyclerItems.setAdapter(itemAdapter);
 
-        // Cancel Button Logic
-        if ("Pending".equalsIgnoreCase(order.getStatus())) {
+
+        // --- Cancel Button Gray Out and Disclaimer Logic ---
+        if ("Pending".equalsIgnoreCase(status)) {
+            // Active state
             holder.btnCancel.setVisibility(View.VISIBLE);
             holder.btnCancel.setEnabled(true);
             holder.btnCancel.setText("Cancel Order");
+            holder.tvDisclaimer.setVisibility(View.GONE);
+
+            // Set button appearance to normal/primary color (R.color.brand_orange must exist)
+            holder.btnCancel.setBackgroundTintList(context.getResources().getColorStateList(R.color.brand_orange));
 
             holder.btnCancel.setOnClickListener(v -> {
                 int currentPos = holder.getBindingAdapterPosition();
@@ -84,16 +110,19 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
                 }
             });
         }
-        else if ("Cancelled".equalsIgnoreCase(order.getStatus())) {
-            // Visual state during the 2-second delay
+        else {
+            // Inactive/Grayed-out state (Being Made, Being Delivered, etc.)
             holder.btnCancel.setVisibility(View.VISIBLE);
             holder.btnCancel.setEnabled(false);
-            holder.btnCancel.setText("Cancelling...");
-            holder.btnCancel.setTextColor(android.graphics.Color.GRAY);
+            holder.btnCancel.setText("Cancel Order");
+
+            // Set button appearance to gray
+            holder.btnCancel.setBackgroundTintList(context.getResources().getColorStateList(android.R.color.darker_gray));
+            holder.tvDisclaimer.setVisibility(View.VISIBLE); // Show disclaimer
+
+            holder.btnCancel.setOnClickListener(null); // Remove click listener
         }
-        else {
-            holder.btnCancel.setVisibility(View.GONE);
-        }
+        // --- End Cancel Button Logic ---
     }
 
     @Override
@@ -113,7 +142,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         AlertDialog dialog = builder.create();
 
         btnYes.setOnClickListener(v -> {
-            performDelayedCancel(order, position); // Correctly call the new method
+            performCancel(order, position);
             dialog.dismiss();
         });
 
@@ -122,26 +151,23 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         dialog.show();
     }
 
-    private void performDelayedCancel(Order order, int position) {
-        // 1. UPDATE VISUALLY FIRST
-        order.setStatus("Cancelled");
-        notifyItemChanged(position); // Updates the UI immediately
-
-        // 2. WAIT 2 SECONDS, THEN UPDATE DATABASE
-        new Handler().postDelayed(() -> {
-            FirebaseFirestore.getInstance().collection("orders")
-                    .document(order.getOrderId())
-                    .update("status", "Cancelled")
-                    .addOnSuccessListener(a -> {
-                        Toast.makeText(context, "Order Cancelled", Toast.LENGTH_SHORT).show();
-                    });
-        }, 2000);
+    private void performCancel(Order order, int position) {
+        FirebaseFirestore.getInstance().collection("orders")
+                .document(order.getOrderId())
+                .update("status", "Cancelled")
+                .addOnSuccessListener(a -> {
+                    Toast.makeText(context, "Order Cancelled", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(context, "Failed to cancel order.", Toast.LENGTH_LONG).show();
+                });
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvDate, tvOrderId, tvStatus, tvSubtotal, tvTotal, tvNote;
         RecyclerView recyclerItems;
         Button btnCancel;
+        TextView tvDisclaimer; // NEW: Disclaimer TextView
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -153,6 +179,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
             tvNote = itemView.findViewById(R.id.tv_order_note);
             recyclerItems = itemView.findViewById(R.id.recycler_order_summary);
             btnCancel = itemView.findViewById(R.id.btn_cancel_order);
+            tvDisclaimer = itemView.findViewById(R.id.tv_cancel_disclaimer); // NEW
         }
     }
 }

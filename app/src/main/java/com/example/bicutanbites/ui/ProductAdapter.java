@@ -37,7 +37,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         this.fullList = new ArrayList<>(items);
         this.isGrid = isGrid;
         this.listener = listener;
-
     }
 
     public void setViewMode(boolean grid) {
@@ -81,7 +80,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         Product p = items.get(position);
 
         holder.title.setText(p.getTitle());
+        // Updated to use PHP symbol
         holder.price.setText("₱" + p.getPrice());
+
+        // NEW: Set the category text dynamically
+        if (holder.tvCategory != null) {
+            holder.tvCategory.setText(p.getCategory());
+        }
 
         if (holder.desc != null) {
             holder.desc.setText(p.getDescription());
@@ -93,9 +98,34 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
                 .centerCrop()
                 .into(holder.img);
 
-        holder.btnAdd.setOnClickListener(v -> {
-            listener.onAddClicked(p);
-        });
+        // --- FIXED LOGIC: Check availability and handle UI state ---
+        if (p.isItemAvailable()) {
+            // Product is available: Set everything to normal
+            holder.itemView.setAlpha(1.0f);
+            holder.btnAdd.setEnabled(true);
+            holder.btnAdd.setText("Add");
+
+            // Re-set the normal click listener
+            holder.btnAdd.setOnClickListener(v -> {
+                listener.onAddClicked(p);
+            });
+            // Clear any general click listener on the item view (if set when unavailable)
+            holder.itemView.setOnClickListener(null);
+        } else {
+            // Product is NOT available: Gray out and disable interaction
+            holder.itemView.setAlpha(0.5f); // Gray out the entire item view
+            holder.btnAdd.setEnabled(false); // Disable the add button
+            holder.btnAdd.setText("Sold Out");
+
+            // Clear the listener for the button
+            holder.btnAdd.setOnClickListener(null);
+
+            // Add a friendly message if the user taps the grayed-out item
+            holder.itemView.setOnClickListener(v -> {
+                Toast.makeText(context, p.getTitle() + " is currently sold out.", Toast.LENGTH_SHORT).show();
+            });
+        }
+        // --- END FIXED LOGIC ---
     }
 
 
@@ -107,7 +137,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
     // -------------------------------- VIEW HOLDER --------------------------------
     public static class VH extends RecyclerView.ViewHolder {
         ImageView img;
-        TextView title, desc, price;
+        TextView title, desc, price, tvCategory;
         Button btnAdd;
 
         public VH(View v) {
@@ -117,6 +147,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
             desc = v.findViewById(R.id.tvDescription);
             price = v.findViewById(R.id.tvPrice);
             btnAdd = v.findViewById(R.id.btnAdd);
+            tvCategory = v.findViewById(R.id.tvCategory);
+            // Removed: tvSoldOut initialization
         }
     }
 
@@ -124,6 +156,4 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         this.items = new ArrayList<>(newItems);
         notifyDataSetChanged();
     }
-
-
 }
