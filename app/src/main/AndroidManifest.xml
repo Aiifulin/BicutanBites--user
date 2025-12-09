@@ -32,6 +32,9 @@
         <!-- Checkout screen -->
         <activity android:name=".CheckoutActivity" />
 
+        <!-- Order History screen -->
+        <activity android:name=".OrderHistoryActivity" />
+
         <activity
             android:name=".NotificationsActivity"
             android:exported="false"

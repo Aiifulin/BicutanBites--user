@@ -18,23 +18,19 @@ import com.example.bicutanbites.models.Order;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapter.ViewHolder> {
 
     private final Context context;
     private final List<Order> orders;
-    private final OrderActionListener listener; // NEW LISTENER
 
-    // 1. Define Interface
-    public interface OrderActionListener {
-        void onCancelOrder(Order order);
-    }
+    // Listener is no longer strictly needed for history, but we keep the structure simple
+    // You can remove it entirely if you want a cleaner cleanup
 
-    // 2. Update Constructor to accept listener
-    public OrderHistoryAdapter(Context context, List<Order> orders, OrderActionListener listener) {
+    public OrderHistoryAdapter(Context context, List<Order> orders, Object listenerIgnored) {
         this.context = context;
         this.orders = orders;
-        this.listener = listener;
     }
 
     @NonNull
@@ -52,12 +48,14 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
         holder.orderStatus.setText(order.getStatus());
         holder.orderTotal.setText(String.format(Locale.getDefault(), "₱%.2f", order.getTotal()));
 
+        // TimeZone Fix
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
+        dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
         if (order.getOrderDate() != null) {
             holder.orderDate.setText(dateFormat.format(order.getOrderDate()));
         }
 
-        // Color code the status
+        // Color coding
         setStatusColor(holder.orderStatus, order.getStatus());
 
         // Note Visibility
@@ -68,14 +66,10 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
             holder.orderNote.setVisibility(View.GONE);
         }
 
-        // --- 3. CANCEL BUTTON LOGIC ---
-        // Only show if status is "Pending"
-        if ("Pending".equalsIgnoreCase(order.getStatus())) {
-            holder.btnCancel.setVisibility(View.VISIBLE);
-            holder.btnCancel.setOnClickListener(v -> listener.onCancelOrder(order));
-        } else {
-            holder.btnCancel.setVisibility(View.GONE);
-        }
+        // --- CHANGE: Always Hide Cancel Button in History ---
+        // Since this adapter is now only for History (Completed/Cancelled),
+        // we never show the cancel button.
+        holder.btnCancel.setVisibility(View.GONE);
 
         // Inner Recycler
         OrderItemAdapter itemAdapter = new OrderItemAdapter(context, order.getItems());
@@ -84,9 +78,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
     }
 
     private void setStatusColor(TextView view, String status) {
-        // Reset default
         view.setBackgroundResource(R.drawable.category_chip_bg);
-
         switch (status) {
             case "Pending":
                 view.setBackgroundColor(Color.parseColor("#FF9800")); // Orange
@@ -100,7 +92,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
             case "Cancelled":
                 view.setBackgroundColor(Color.parseColor("#F44336")); // Red
                 break;
-            default:
+            default: // Includes "Completed"
                 view.setBackgroundColor(Color.GRAY);
         }
     }
@@ -112,7 +104,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView orderId, orderStatus, orderDate, orderTotal, orderNote;
-        Button btnCancel; // NEW BUTTON
+        Button btnCancel;
         RecyclerView innerRecyclerView;
 
         public ViewHolder(@NonNull View itemView) {
@@ -123,8 +115,6 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
             orderTotal = itemView.findViewById(R.id.order_total);
             orderNote = itemView.findViewById(R.id.order_note);
             innerRecyclerView = itemView.findViewById(R.id.recycler_order_items);
-
-            // Find the button
             btnCancel = itemView.findViewById(R.id.btn_cancel_order);
         }
     }
