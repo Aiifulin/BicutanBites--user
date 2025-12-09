@@ -20,6 +20,7 @@ import com.bumptech.glide.signature.ObjectKey;
 import com.example.bicutanbites.EditProfileActivity;
 import com.example.bicutanbites.LoginActivity;
 import com.example.bicutanbites.NotificationsActivity;
+import com.example.bicutanbites.OrderHistoryActivity;
 import com.example.bicutanbites.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -74,7 +75,7 @@ public class AccountFragment extends Fragment {
             if (getActivity() != null) {
                 BottomNavigationView bottomNav = getActivity().findViewById(R.id.bottom_navigation);
                 if (bottomNav != null) {
-                    bottomNav.setSelectedItemId(R.id.nav_orders);
+                    startActivity(new Intent(getActivity(), OrderHistoryActivity.class));
                 }
             }
         });

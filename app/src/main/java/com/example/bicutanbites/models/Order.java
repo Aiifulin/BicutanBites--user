@@ -11,6 +11,7 @@ public class Order {
     private List<OrderItem> items;
     private String note; // <--- NEW FIELD
 
+
     // Update Constructor
     public Order(String orderId, Date orderDate, String status, double total, List<OrderItem> items, String note) {
         this.orderId = orderId;
@@ -19,6 +20,10 @@ public class Order {
         this.total = total;
         this.items = items;
         this.note = note;
+    }
+
+    public void setStatus(String status) { //used to edit status
+        this.status = status;
     }
 
     public String getOrderId() { return orderId; }
