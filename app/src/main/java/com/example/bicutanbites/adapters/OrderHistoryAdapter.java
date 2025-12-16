@@ -25,9 +25,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
     private final Context context;
     private final List<Order> orders;
 
-    // Listener is no longer strictly needed for history, but we keep the structure simple
-    // You can remove it entirely if you want a cleaner cleanup
-
+    // The listener parameter is kept here for compatibility but ignored since this is a history view
     public OrderHistoryAdapter(Context context, List<Order> orders, Object listenerIgnored) {
         this.context = context;
         this.orders = orders;
@@ -44,21 +42,22 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Order order = orders.get(position);
 
+        // Bind basic order details
         holder.orderId.setText("ID: " + order.getOrderId());
         holder.orderStatus.setText(order.getStatus());
         holder.orderTotal.setText(String.format(Locale.getDefault(), "₱%.2f", order.getTotal()));
 
-        // TimeZone Fix
+        // Format and display order date with TimeZone awareness
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
         dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
         if (order.getOrderDate() != null) {
             holder.orderDate.setText(dateFormat.format(order.getOrderDate()));
         }
 
-        // Color coding
+        // Apply color styling based on status
         setStatusColor(holder.orderStatus, order.getStatus());
 
-        // Note Visibility
+        // Display customer note if available
         if (order.getNote() != null && !order.getNote().trim().isEmpty()) {
             holder.orderNote.setVisibility(View.VISIBLE);
             holder.orderNote.setText("Note: " + order.getNote());
@@ -66,18 +65,18 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
             holder.orderNote.setVisibility(View.GONE);
         }
 
-        // --- CHANGE: Always Hide Cancel Button in History ---
-        // Since this adapter is now only for History (Completed/Cancelled),
-        // we never show the cancel button.
+        // Hide the Cancel button as this is the Order History view
         holder.btnCancel.setVisibility(View.GONE);
 
-        // Inner Recycler
+        // Setup nested RecyclerView for displaying order items
         OrderItemAdapter itemAdapter = new OrderItemAdapter(context, order.getItems());
         holder.innerRecyclerView.setLayoutManager(new LinearLayoutManager(context));
         holder.innerRecyclerView.setAdapter(itemAdapter);
     }
 
+    // Applies a background color to the status TextView based on the status string
     private void setStatusColor(TextView view, String status) {
+        // Set a default background resource
         view.setBackgroundResource(R.drawable.category_chip_bg);
         switch (status) {
             case "Pending":
@@ -92,7 +91,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
             case "Cancelled":
                 view.setBackgroundColor(Color.parseColor("#F44336")); // Red
                 break;
-            default: // Includes "Completed"
+            default: // Covers "Completed" and unknown states
                 view.setBackgroundColor(Color.GRAY);
         }
     }
@@ -102,6 +101,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
         return orders.size();
     }
 
+    // ViewHolder class to hold references to all item views
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView orderId, orderStatus, orderDate, orderTotal, orderNote;
         Button btnCancel;
@@ -109,6 +109,7 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Bind UI components
             orderId = itemView.findViewById(R.id.order_id);
             orderStatus = itemView.findViewById(R.id.order_status);
             orderDate = itemView.findViewById(R.id.order_date);

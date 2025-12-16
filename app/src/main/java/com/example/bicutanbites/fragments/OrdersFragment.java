@@ -35,27 +35,29 @@ public class OrdersFragment extends Fragment {
     private SwipeRefreshLayout swipeRefreshLayout;
 
     private ActiveOrderAdapter adapter;
-    private List<Order> activeOrdersList = new ArrayList<>();
-    private ListenerRegistration firestoreListener;
+    private final List<Order> activeOrdersList = new ArrayList<>();
+    private ListenerRegistration firestoreListener; // Manages the real-time connection
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_orders, container, false);
 
+        // Initialize UI components
         recyclerActiveOrders = view.findViewById(R.id.recycler_active_orders);
         tvNoOrders = view.findViewById(R.id.tv_no_orders);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
 
+        // Setup RecyclerView
         recyclerActiveOrders.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ActiveOrderAdapter(getContext(), activeOrdersList);
         recyclerActiveOrders.setAdapter(adapter);
 
+        // Start loading data
         loadActiveOrders();
 
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadActiveOrders();
-        });
+        // Setup refresh listener
+        swipeRefreshLayout.setOnRefreshListener(this::loadActiveOrders);
 
         return view;
     }
@@ -68,18 +70,18 @@ public class OrdersFragment extends Fragment {
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+        // Remove previous listener before starting a new one
         if (firestoreListener != null) {
             firestoreListener.remove();
         }
 
-        // CORRECT: Statuses that should be visible in the Active Orders list
-        // This is the Firestore filter. If the DB status changes to Completed,
-        // the item should drop out of this listener's result set.
+        // Define the statuses that count as "active" for the user interface
         List<String> activeStatuses = Arrays.asList("Pending", "Being Made", "Being Delivered");
 
+        // Establish the real-time Firestore listener
         firestoreListener = FirebaseFirestore.getInstance().collection("orders")
                 .whereEqualTo("userID", uid)
-                .whereIn("status", activeStatuses)
+                .whereIn("status", activeStatuses) // Filter for active statuses
                 .orderBy("orderedAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     swipeRefreshLayout.setRefreshing(false);
@@ -88,6 +90,7 @@ public class OrdersFragment extends Fragment {
 
                     activeOrdersList.clear();
 
+                    // Toggle visibility of empty state vs. recycler view
                     if (value.isEmpty()) {
                         tvNoOrders.setVisibility(View.VISIBLE);
                         recyclerActiveOrders.setVisibility(View.GONE);
@@ -95,20 +98,22 @@ public class OrdersFragment extends Fragment {
                         tvNoOrders.setVisibility(View.GONE);
                         recyclerActiveOrders.setVisibility(View.VISIBLE);
 
+                        // Process incoming documents
                         for (DocumentSnapshot doc : value) {
                             String id = doc.getString("orderId");
                             Date date = doc.getDate("orderedAt");
                             String status = doc.getString("status");
 
-                            // NEW DEFENSIVE CHECK: This should not be needed if Firestore works,
-                            // but it ensures that no completed/cancelled order makes it into the list.
+                            // Firestore listener ensures only active statuses come through,
+                            // but defensive checks ensure logic consistency.
                             if ("Completed".equalsIgnoreCase(status) || "Cancelled".equalsIgnoreCase(status)) {
-                                continue; // Skip and do not add to active list
+                                continue;
                             }
 
                             Double total = doc.getDouble("total");
                             String note = doc.getString("note");
 
+                            // Deserialize nested item list
                             List<Map<String, Object>> rawItems = (List<Map<String, Object>>) doc.get("items");
                             List<OrderItem> items = new ArrayList<>();
                             if (rawItems != null) {
@@ -131,7 +136,7 @@ public class OrdersFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Crucial: Remove the listener when the view is destroyed
+        // Crucial: Remove the listener when the view is destroyed to prevent leaks
         if (firestoreListener != null) {
             firestoreListener.remove();
         }

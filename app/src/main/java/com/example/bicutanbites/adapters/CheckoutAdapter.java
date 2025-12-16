@@ -24,11 +24,11 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
     private final List<CheckoutItem> items;
     private final CartActionListener listener;
 
-    // 1. UPDATE INTERFACE
+    // Interface to communicate cart actions (increase, decrease, delete) back to the hosting activity/fragment
     public interface CartActionListener {
         void onIncrease(CheckoutItem item);
         void onDecrease(CheckoutItem item);
-        void onDelete(CheckoutItem item); // NEW
+        void onDelete(CheckoutItem item);
     }
 
     public CheckoutAdapter(Context context, List<CheckoutItem> items, CartActionListener listener) {
@@ -48,20 +48,20 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CheckoutItem item = items.get(position);
 
+        // Bind product details and calculate total price for the quantity
         holder.productName.setText(item.getName());
         holder.productQuantity.setText(String.valueOf(item.getQty()));
         holder.productPrice.setText(String.format(Locale.getDefault(), "₱%.2f", item.getPrice() * item.getQty()));
 
+        // Load image using Glide
         Glide.with(context)
                 .load(item.getImageUrl())
                 .placeholder(R.drawable.placeholder)
                 .into(holder.productImage);
 
-        // Listeners
+        // Attach listeners to trigger cart actions via the interface
         holder.btnIncrease.setOnClickListener(v -> listener.onIncrease(item));
         holder.btnDecrease.setOnClickListener(v -> listener.onDecrease(item));
-
-        // 2. BIND DELETE LISTENER
         holder.btnDelete.setOnClickListener(v -> listener.onDelete(item));
     }
 
@@ -70,11 +70,12 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
         return items.size();
     }
 
+    // ViewHolder class to hold references to all cart item views
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView productImage;
         TextView productName, productQuantity, productPrice;
         TextView btnIncrease, btnDecrease;
-        ImageButton btnDelete; // NEW
+        ImageButton btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -84,8 +85,6 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
             productPrice = itemView.findViewById(R.id.product_price);
             btnIncrease = itemView.findViewById(R.id.btn_increase);
             btnDecrease = itemView.findViewById(R.id.btn_decrease);
-
-            // 3. FIND DELETE BUTTON
             btnDelete = itemView.findViewById(R.id.btn_delete);
         }
     }

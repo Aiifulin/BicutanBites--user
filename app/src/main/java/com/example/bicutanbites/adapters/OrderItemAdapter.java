@@ -30,7 +30,7 @@ public class OrderItemAdapter extends RecyclerView.Adapter<OrderItemAdapter.View
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Uses the read-only layout (no buttons)
+        // Inflate the read-only layout for displaying individual order items
         View view = LayoutInflater.from(context).inflate(R.layout.item_order_product, parent, false);
         return new ViewHolder(view);
     }
@@ -41,15 +41,15 @@ public class OrderItemAdapter extends RecyclerView.Adapter<OrderItemAdapter.View
 
         holder.productName.setText(item.getProductName());
 
-        // 1. Display Quantity
+        // Display Quantity
         holder.productQuantity.setText(String.format(Locale.getDefault(), "Qty: %d", item.getQuantity()));
 
-        // 2. Display Price as "₱Unit (₱Total)"
+        // Calculate and display price as "₱Unit (₱Total Line Price)"
         double unitPrice = item.getPrice();
         double lineTotal = unitPrice * item.getQuantity();
-
         holder.productPrice.setText(String.format(Locale.getDefault(), "₱%.2f (₱%.2f)", unitPrice, lineTotal));
 
+        // Load image using Glide
         Glide.with(context)
                 .load(item.getImageUrl())
                 .placeholder(R.drawable.placeholder)
@@ -61,12 +61,14 @@ public class OrderItemAdapter extends RecyclerView.Adapter<OrderItemAdapter.View
         return items.size();
     }
 
+    // ViewHolder class to hold references to all item views
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView productImage;
         TextView productName, productQuantity, productPrice;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Bind UI components
             productImage = itemView.findViewById(R.id.product_image);
             productName = itemView.findViewById(R.id.product_name);
             productQuantity = itemView.findViewById(R.id.product_quantity);

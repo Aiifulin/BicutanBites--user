@@ -1,6 +1,6 @@
 package com.example.bicutanbites.fragments;
 
-import android.app.AlertDialog; // Import for the dialog
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,7 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.bicutanbites.EditProfileActivity; // Import this so we can redirect user
+import com.example.bicutanbites.EditProfileActivity;
 import com.example.bicutanbites.R;
 import com.example.bicutanbites.adapters.CheckoutAdapter;
 import com.example.bicutanbites.models.CheckoutItem;
@@ -48,7 +48,7 @@ public class CartFragment extends Fragment {
     private RadioGroup rgPayment;
 
     private CheckoutAdapter adapter;
-    private List<CheckoutItem> cartItems = new ArrayList<>();
+    private final List<CheckoutItem> cartItems = new ArrayList<>();
     private double totalPrice = 0.0;
 
     @Nullable
@@ -56,6 +56,7 @@ public class CartFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_cart, container, false);
 
+        // Initialize UI components
         recyclerCart = view.findViewById(R.id.recycler_cart);
         tvTotal = view.findViewById(R.id.tv_total_price);
         btnPlaceOrder = view.findViewById(R.id.btn_place_order);
@@ -67,14 +68,11 @@ public class CartFragment extends Fragment {
         cartBottomBar = view.findViewById(R.id.cart_bottom_bar);
 
         setupRecyclerView();
-        loadCartItems();
+        loadCartItems(); // Start real-time listener for cart data
 
         btnPlaceOrder.setOnClickListener(v -> checkAddressAndPlaceOrder());
         ImageButton btnBack = view.findViewById(R.id.btn_back);
-
         btnBack.setOnClickListener(v -> {
-            // If this fragment is inside CheckoutActivity, this will close it
-            // and return the user to the Home screen.
             if (getActivity() != null) {
                 getActivity().onBackPressed();
             }
@@ -83,6 +81,7 @@ public class CartFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
+        // Setup adapter with listeners for cart item actions
         adapter = new CheckoutAdapter(getContext(), cartItems, new CheckoutAdapter.CartActionListener() {
             @Override
             public void onIncrease(CheckoutItem item) {
@@ -94,7 +93,6 @@ public class CartFragment extends Fragment {
                 updateQuantity(item, -1);
             }
 
-            // --- NEW: HANDLE DELETE ---
             @Override
             public void onDelete(CheckoutItem item) {
                 showDeleteConfirmation(item);
@@ -105,7 +103,7 @@ public class CartFragment extends Fragment {
         recyclerCart.setAdapter(adapter);
     }
 
-    // Helper method for Delete Confirmation
+    // Displays confirmation dialog before deleting an item
     private void showDeleteConfirmation(CheckoutItem item) {
         if (getContext() == null) return;
 
@@ -120,13 +118,13 @@ public class CartFragment extends Fragment {
 
         dialog.show();
 
-        // Fix button colors (Same logic used for Address Dialog)
+        // Customizes dialog button styling
         android.widget.Button positiveBtn = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
         android.widget.Button negativeBtn = dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
 
         if (positiveBtn != null) {
             positiveBtn.setBackground(null);
-            positiveBtn.setTextColor(android.graphics.Color.RED); // Red for delete
+            positiveBtn.setTextColor(android.graphics.Color.RED);
         }
         if (negativeBtn != null) {
             negativeBtn.setBackground(null);
@@ -134,6 +132,7 @@ public class CartFragment extends Fragment {
         }
     }
 
+    // Removes item document from the user's cart collection in Firestore
     private void deleteItemFromFirestore(CheckoutItem item) {
         if (FirebaseAuth.getInstance().getCurrentUser() == null || item.getDocumentId() == null) return;
 
@@ -149,22 +148,22 @@ public class CartFragment extends Fragment {
                 );
     }
 
+    // Updates the quantity of a cart item directly in Firestore
     private void updateQuantity(CheckoutItem item, int change) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+        if (FirebaseAuth.getInstance().getCurrentUser() == null || item.getDocumentId() == null) return;
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        if (item.getDocumentId() == null) return;
-
         int newQty = item.getQty() + change;
 
-        if (newQty < 1) return; // Prevent going below 1
+        if (newQty < 1) return; // Must have at least one item
 
         db.collection("users").document(uid).collection("cart")
                 .document(item.getDocumentId())
                 .update("qty", newQty);
     }
 
+    // Establishes a real-time listener to the user's cart collection
     private void loadCartItems() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -177,6 +176,7 @@ public class CartFragment extends Fragment {
                     cartItems.clear();
                     totalPrice = 0.0;
 
+                    // Rebuild cart list and recalculate total price
                     if (snapshots != null) {
                         for (DocumentSnapshot doc : snapshots) {
                             CheckoutItem item = doc.toObject(CheckoutItem.class);
@@ -190,14 +190,12 @@ public class CartFragment extends Fragment {
                     adapter.notifyDataSetChanged();
                     tvTotal.setText(String.format(Locale.getDefault(), "₱%.2f", totalPrice));
 
-                    // --- TOGGLE VISIBILITY LOGIC ---
+                    // --- TOGGLE VISIBILITY ---
                     if (cartItems.isEmpty()) {
-                        // Cart is Empty: Show "Empty View", Hide everything else
                         emptyCartView.setVisibility(View.VISIBLE);
                         cartContentView.setVisibility(View.GONE);
                         cartBottomBar.setVisibility(View.GONE);
                     } else {
-                        // Cart has Items: Hide "Empty View", Show everything
                         emptyCartView.setVisibility(View.GONE);
                         cartContentView.setVisibility(View.VISIBLE);
                         cartBottomBar.setVisibility(View.VISIBLE);
@@ -206,40 +204,32 @@ public class CartFragment extends Fragment {
                 });
     }
 
-    // --- NEW LOGIC STARTS HERE ---
+    // --- ORDER PLACEMENT VALIDATION AND EXECUTION ---
 
     private void checkAddressAndPlaceOrder() {
-        if (cartItems.isEmpty()) return;
+        if (cartItems.isEmpty() || FirebaseAuth.getInstance().getCurrentUser() == null) return;
 
         btnPlaceOrder.setEnabled(false);
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+        // 1. Fetch user's address and phone number
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String address = documentSnapshot.getString("address");
-                        String phone = documentSnapshot.getString("phoneNumber"); // Get Phone
+                        String phone = documentSnapshot.getString("phoneNumber");
 
-                        // --- VALIDATION: Check Address AND Phone ---
-                        if (address == null || address.trim().isEmpty() ||
-                                phone == null || phone.trim().isEmpty()) {
-
-                            // CASE 1: Completely Empty Info
-                            showAddressDialog("Missing Information",
-                                    "To place an order, you must provide your Home Address and Phone Number in your profile.");
+                        // 2. Perform validation checks
+                        if (address == null || address.trim().isEmpty() || phone == null || phone.trim().isEmpty()) {
+                            showAddressDialog("Missing Information", "You must provide your Home Address and Phone Number in your profile.");
                             btnPlaceOrder.setEnabled(true);
-
-                        }
-                        else if (!isAddressValid(address)) {
-                            // CASE 2: Invalid Address Format
-                            showAddressDialog("Invalid Address",
-                                    "Your address is too short or vague. Please include your House/Unit Number and Street Name.");
+                        } else if (!isAddressValid(address)) {
+                            showAddressDialog("Invalid Address", "Your address is too short or vague. Please update your full address in your profile.");
                             btnPlaceOrder.setEnabled(true);
-                        }
-                        else {
-                            // CASE 3: Valid -> Place Order
+                        } else {
+                            // 3. If valid, proceed to place order
                             performPlaceOrder(db, uid, address, phone);
                         }
                     } else {
@@ -253,11 +243,10 @@ public class CartFragment extends Fragment {
                 });
     }
 
-    // Updated to accept Title and Message
+    // Displays a dialog prompting the user to update their profile information
     private void showAddressDialog(String title, String message) {
         if (getContext() == null) return;
 
-        // 1. Create the dialog but don't show it yet
         AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setTitle(title)
                 .setMessage(message)
@@ -268,33 +257,29 @@ public class CartFragment extends Fragment {
                 .setNegativeButton("Cancel", null)
                 .create();
 
-        // 2. Show the dialog
         dialog.show();
 
-        // 3. Customize the buttons (Must be done AFTER dialog.show())
-
-        // Import: android.widget.Button and android.graphics.Color
+        // Customizes button colors after dialog is shown
         Button positiveBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         Button negativeBtn = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-
-        // A. Remove the Orange Background (Reset to transparent)
-        positiveBtn.setBackground(null);
-        negativeBtn.setBackground(null);
-
-        // B. Change the Text Color to Black/Grey (instead of Orange)
-        positiveBtn.setTextColor(android.graphics.Color.BLACK);
-        negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
+        if (positiveBtn != null) {
+            positiveBtn.setBackground(null);
+            positiveBtn.setTextColor(android.graphics.Color.BLACK);
+        }
+        if (negativeBtn != null) {
+            negativeBtn.setBackground(null);
+            negativeBtn.setTextColor(android.graphics.Color.DKGRAY);
+        }
     }
 
     private void performPlaceOrder(FirebaseFirestore db, String uid, String deliveryAddress, String contactPhone) {
-        // Get Input Data
+        // Collect order details
         String note = etNotes.getText().toString().trim();
-
         int selectedId = rgPayment.getCheckedRadioButtonId();
         RadioButton selectedBtn = rgPayment.findViewById(selectedId);
         String paymentMethod = (selectedBtn != null) ? selectedBtn.getText().toString() : "Cash";
 
-        // Create Order Map
+        // Create Order document data map
         String orderId = db.collection("orders").document().getId();
         Map<String, Object> orderMap = new HashMap<>();
         orderMap.put("orderId", orderId);
@@ -305,19 +290,20 @@ public class CartFragment extends Fragment {
         orderMap.put("items", cartItems);
         orderMap.put("note", note);
         orderMap.put("paymentMethod", paymentMethod);
-
-        // Save the address and phone in the order too!
-        orderMap.put("deliveryAddress", deliveryAddress);
+        orderMap.put("deliveryAddress", deliveryAddress); // Include address/phone in the order snapshot
         orderMap.put("contactPhone", contactPhone);
 
         WriteBatch batch = db.batch();
+        // 1. Set the new order document
         batch.set(db.collection("orders").document(orderId), orderMap);
 
+        // 2. Delete all items in the user's cart (transactional cleanup)
         db.collection("users").document(uid).collection("cart").get()
                 .addOnSuccessListener(snapshots -> {
                     for (DocumentSnapshot doc : snapshots) {
                         batch.delete(doc.getReference());
                     }
+                    // Commit both operations (write order and delete cart)
                     batch.commit().addOnSuccessListener(aVoid -> {
                         Toast.makeText(getContext(), "Order Placed Successfully!", Toast.LENGTH_LONG).show();
                         if (getActivity() != null) getActivity().finish();
@@ -328,18 +314,15 @@ public class CartFragment extends Fragment {
                 });
     }
 
+    // Simple validation rules to ensure the address is reasonably detailed
     private boolean isAddressValid(String address) {
         if (address == null) return false;
         String trimmed = address.trim();
 
-        // Rule 1: Must be at least 10 characters long
+        // Rules: must be descriptive (length, contain number/letter)
         if (trimmed.length() < 10) return false;
-
-        // Rule 2: Must contain at least one digit (House number or Zip code)
-        if (!trimmed.matches(".*\\d.*")) return false;
-
-        // Rule 3: Must contain at least one letter
-        if (!trimmed.matches(".*[a-zA-Z].*")) return false;
+        if (!trimmed.matches(".*\\d.*")) return false; // Contains digit (house number)
+        if (!trimmed.matches(".*[a-zA-Z].*")) return false; // Contains letters (street name)
 
         return true;
     }

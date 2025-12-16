@@ -39,13 +39,13 @@ public class HomeFragment extends Fragment {
 
     private RecyclerView recycler;
     private ProductAdapter adapter;
-    private List<Product> originalProducts = new ArrayList<>();
+    private final List<Product> originalProducts = new ArrayList<>();
     private boolean isGrid = false;
 
     private EditText etSearch;
     private ImageButton btnList, btnGrid;
-    private View btnCartContainer; // The FrameLayout container for the cart
-    private TextView txtCartBadge; // The badge text view
+    private View btnCartContainer;
+    private TextView txtCartBadge;
 
     private SwipeRefreshLayout swipeRefresh;
     private CartHandler cartHandler;
@@ -63,17 +63,16 @@ public class HomeFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragmenthome, container, false);
 
-        // Init views
+        // Initialize Core Views
         recycler = view.findViewById(R.id.recyclerProducts);
         etSearch = view.findViewById(R.id.etSearch);
         btnList = view.findViewById(R.id.btnList);
         btnGrid = view.findViewById(R.id.btnGrid);
-
-        // Init Cart Views
-        btnCartContainer = view.findViewById(R.id.cartButton); // The FrameLayout
-        txtCartBadge = view.findViewById(R.id.txtCartBadge);   // The Badge TextView
-
+        btnCartContainer = view.findViewById(R.id.cartButton);
+        txtCartBadge = view.findViewById(R.id.txtCartBadge);
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
+
+        // Initialize Category Buttons
         btnCatAll = view.findViewById(R.id.btnCatAll);
         btnCatSandwiches = view.findViewById(R.id.btnCatSandwiches);
         btnCatSizzling = view.findViewById(R.id.btnCatSizzling);
@@ -85,31 +84,22 @@ public class HomeFragment extends Fragment {
         btnCatDesserts = view.findViewById(R.id.btnCatDesserts);
         btnCatBeverages = view.findViewById(R.id.btnCatBeverages);
 
-        // Initialize CartHandler
+        // Initialize CartHandler for database operations
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             cartHandler = new CartHandler(userId);
         }
 
-        // 1. Setup recycler
+        // Setup all Fragment components
         setupRecycler();
-
-        // 2. Load products
         loadProductsFromFirebase();
-
-        // 3. Setup Cart Badge Listener (NEW)
-        setupCartBadge();
-
-        // 4. Setup Categories
+        setupCartBadge(); // Real-time cart item count listener
         setupCategoryButtons();
-
-        // 5. Other UI setups
         setupToggles();
         setupSearch();
         setupSwipe();
 
         // Cart button click listener
-        // We put the listener on the Container so clicking anywhere on the icon/badge works
         btnCartContainer.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), CheckoutActivity.class);
             startActivity(intent);
@@ -118,7 +108,7 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
-    // --- NEW METHOD: Real-time Cart Badge ---
+    // --- Real-time Cart Badge Listener ---
     private void setupCartBadge() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             txtCartBadge.setVisibility(View.GONE);
@@ -126,6 +116,7 @@ public class HomeFragment extends Fragment {
         }
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // Listen to cart collection changes to update the badge count
         FirebaseFirestore.getInstance()
                 .collection("users")
                 .document(uid)
@@ -152,25 +143,26 @@ public class HomeFragment extends Fragment {
                 });
     }
 
+    // --- Category Filtering Logic ---
     private void setupCategoryButtons() {
         View.OnClickListener listener = v -> {
             resetCategoryStyles();
             TextView tv = (TextView) v;
 
-            // Map the button's ID to the exact Firestore category string (using '&')
+            // Map button ID to the Firestore category string
             int id = v.getId();
             if (id == R.id.btnCatAll) {
                 activeCategory = "All";
             } else if (id == R.id.btnCatSandwiches) {
-                activeCategory = "Sandwiches & Rolls"; // Matches Firestore Key
+                activeCategory = "Sandwiches & Rolls";
             } else if (id == R.id.btnCatSizzling) {
                 activeCategory = "Sizzling Specials";
             } else if (id == R.id.btnCatPastaNoodles) {
-                activeCategory = "Pasta & Noodles"; // Matches Firestore Key
+                activeCategory = "Pasta & Noodles";
             } else if (id == R.id.btnCatChickenMeats) {
-                activeCategory = "Chicken & Meats"; // Matches Firestore Key
+                activeCategory = "Chicken & Meats";
             } else if (id == R.id.btnCatAppetizers) {
-                activeCategory = "Appetizers/Sides"; // Matches Firestore Key
+                activeCategory = "Appetizers/Sides";
             } else if (id == R.id.btnCatNoodleSoup) {
                 activeCategory = "Noodle Soup";
             } else if (id == R.id.btnCatFilipino) {
@@ -181,13 +173,14 @@ public class HomeFragment extends Fragment {
                 activeCategory = "Beverages";
             }
 
+            // Apply selected style
             tv.setBackgroundResource(R.drawable.category_chip_selected);
             tv.setTextColor(Color.WHITE);
 
             applyCategoryFilter();
         };
 
-        // Apply the listener to all category buttons
+        // Apply listener to all buttons
         btnCatAll.setOnClickListener(listener);
         btnCatSandwiches.setOnClickListener(listener);
         btnCatSizzling.setOnClickListener(listener);
@@ -199,7 +192,7 @@ public class HomeFragment extends Fragment {
         btnCatDesserts.setOnClickListener(listener);
         btnCatBeverages.setOnClickListener(listener);
 
-        // Set 'All' as the default selected category on load
+        // Set 'All' as the default selected category style
         btnCatAll.setBackgroundResource(R.drawable.category_chip_selected);
         btnCatAll.setTextColor(Color.WHITE);
     }
@@ -217,6 +210,7 @@ public class HomeFragment extends Fragment {
         List<Product> filtered = new ArrayList<>();
 
         for (Product p : originalProducts) {
+            // Check if product's category matches the active filter
             if (p.getCategory() != null &&
                     p.getCategory().toLowerCase().contains(activeCategory.toLowerCase())) {
                 filtered.add(p);
@@ -227,6 +221,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void resetCategoryStyles() {
+        // Reset all category buttons to default unselected style
         btnCatAll.setBackgroundResource(R.drawable.category_chip_bg);
         btnCatSandwiches.setBackgroundResource(R.drawable.category_chip_bg);
         btnCatSizzling.setBackgroundResource(R.drawable.category_chip_bg);
@@ -237,7 +232,6 @@ public class HomeFragment extends Fragment {
         btnCatFilipino.setBackgroundResource(R.drawable.category_chip_bg);
         btnCatDesserts.setBackgroundResource(R.drawable.category_chip_bg);
         btnCatBeverages.setBackgroundResource(R.drawable.category_chip_bg);
-
 
         btnCatAll.setTextColor(Color.BLACK);
         btnCatSandwiches.setTextColor(Color.BLACK);
@@ -251,7 +245,9 @@ public class HomeFragment extends Fragment {
         btnCatBeverages.setTextColor(Color.BLACK);
     }
 
+    // --- Recycler & View Toggles ---
     private void setupRecycler() {
+        // Initialize adapter with CartHandler action
         adapter = new ProductAdapter(
                 getContext(),
                 new ArrayList<>(originalProducts),
@@ -269,6 +265,7 @@ public class HomeFragment extends Fragment {
 
         recycler.setAdapter(adapter);
 
+        // Set initial layout manager based on default mode
         if (isGrid) {
             recycler.setLayoutManager(new GridLayoutManager(getContext(), 2));
         } else {
@@ -310,6 +307,7 @@ public class HomeFragment extends Fragment {
         updateToggleVisuals();
     }
 
+    // --- Search and Swipe Refresh ---
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -335,6 +333,7 @@ public class HomeFragment extends Fragment {
         }
         String query = q.toLowerCase();
         List<Product> filtered = new ArrayList<>();
+        // Filter based on product title or description
         for (Product p : originalProducts) {
             if ((p.getTitle() != null && p.getTitle().toLowerCase().contains(query)) ||
                     (p.getDescription() != null && p.getDescription().toLowerCase().contains(query))) {
@@ -344,6 +343,7 @@ public class HomeFragment extends Fragment {
         adapter.setItems(filtered);
     }
 
+    // --- Data Loading ---
     private void loadProductsFromFirebase() {
         swipeRefresh.setRefreshing(true);
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -360,8 +360,7 @@ public class HomeFragment extends Fragment {
                     String imageUrl = doc.getString("imageUrl");
                     Double price = doc.getDouble("price");
                     String category = doc.getString("category");
-                    // NEW: Fetch the availability status (it's a Boolean in Firestore)
-                    Boolean available = doc.getBoolean("available");
+                    Boolean available = doc.getBoolean("available"); // Fetch availability status
 
                     Product p = new Product(
                             id,
@@ -370,14 +369,13 @@ public class HomeFragment extends Fragment {
                             imageUrl,
                             price != null ? price : 0,
                             category,
-                            // NEW: Pass the status to the Product constructor
-                            available != null ? available : true
+                            available != null ? available : true // Pass availability status
                     );
 
                     originalProducts.add(p);
                 }
 
-                // FIXED: Call this AFTER the loop finishes
+                // Apply current filters after loading all data
                 applyCategoryFilter();
 
             } else {

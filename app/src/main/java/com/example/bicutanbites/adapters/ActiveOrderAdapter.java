@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bicutanbites.R;
 import com.example.bicutanbites.models.Order;
-import com.example.bicutanbites.models.OrderItem;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -45,6 +44,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         Order order = orders.get(position);
         String status = order.getStatus();
 
+        // Format and display order date/time
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
 
@@ -55,7 +55,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         // --- Status Color Change Logic ---
         int statusColor;
 
-        // Use Integer colors from resources for broader compatibility
+        // Apply color based on order status for user visibility
         if ("Pending".equalsIgnoreCase(status)) {
             statusColor = context.getResources().getColor(android.R.color.holo_orange_dark);
         } else if ("Being Made".equalsIgnoreCase(status)) {
@@ -65,20 +65,18 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         } else if ("Completed".equalsIgnoreCase(status)) {
             statusColor = context.getResources().getColor(android.R.color.holo_green_dark);
         } else {
-            // Default or Cancelled
             statusColor = context.getResources().getColor(android.R.color.darker_gray);
         }
 
         holder.tvStatus.setTextColor(statusColor);
-        // --- End Status Color Change Logic ---
 
-        // Prices
+        // Calculate and display prices (assuming delivery fee logic is here)
         double deliveryFee = 50.00;
         double subtotal = order.getTotal() - deliveryFee;
         holder.tvSubtotal.setText(String.format(Locale.getDefault(), "₱%.2f", subtotal));
         holder.tvTotal.setText(String.format(Locale.getDefault(), "₱%.2f", order.getTotal()));
 
-        // Note
+        // Display customer note if present
         if (order.getNote() != null && !order.getNote().isEmpty()) {
             holder.tvNote.setVisibility(View.VISIBLE);
             holder.tvNote.setText("Note: " + order.getNote());
@@ -86,43 +84,36 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
             holder.tvNote.setVisibility(View.GONE);
         }
 
-        // Nested Items
+        // Setup nested RecyclerView for order items
         OrderItemAdapter itemAdapter = new OrderItemAdapter(context, order.getItems());
         holder.recyclerItems.setLayoutManager(new LinearLayoutManager(context));
         holder.recyclerItems.setAdapter(itemAdapter);
 
 
-        // --- Cancel Button Gray Out and Disclaimer Logic ---
+        // --- Cancel Button Conditional Logic ---
         if ("Pending".equalsIgnoreCase(status)) {
-            // Active state
+            // Enable cancellation for 'Pending' status
             holder.btnCancel.setVisibility(View.VISIBLE);
             holder.btnCancel.setEnabled(true);
-            holder.btnCancel.setText("Cancel Order");
             holder.tvDisclaimer.setVisibility(View.GONE);
-
-            // Set button appearance to normal/primary color (R.color.brand_orange must exist)
             holder.btnCancel.setBackgroundTintList(context.getResources().getColorStateList(R.color.brand_orange));
 
             holder.btnCancel.setOnClickListener(v -> {
                 int currentPos = holder.getBindingAdapterPosition();
                 if (currentPos != RecyclerView.NO_POSITION) {
-                    showCancelDialog(order, currentPos);
+                    showCancelDialog(order, currentPos); // Show confirmation dialog
                 }
             });
         }
         else {
-            // Inactive/Grayed-out state (Being Made, Being Delivered, etc.)
+            // Disable cancellation for any other status (grayed out)
             holder.btnCancel.setVisibility(View.VISIBLE);
             holder.btnCancel.setEnabled(false);
-            holder.btnCancel.setText("Cancel Order");
-
-            // Set button appearance to gray
             holder.btnCancel.setBackgroundTintList(context.getResources().getColorStateList(android.R.color.darker_gray));
-            holder.tvDisclaimer.setVisibility(View.VISIBLE); // Show disclaimer
+            holder.tvDisclaimer.setVisibility(View.VISIBLE); // Show disclaimer text
 
-            holder.btnCancel.setOnClickListener(null); // Remove click listener
+            holder.btnCancel.setOnClickListener(null);
         }
-        // --- End Cancel Button Logic ---
     }
 
     @Override
@@ -130,6 +121,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         return orders.size();
     }
 
+    // Displays the confirmation dialog before attempting cancellation
     private void showCancelDialog(Order order, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -142,7 +134,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         AlertDialog dialog = builder.create();
 
         btnYes.setOnClickListener(v -> {
-            performCancel(order, position);
+            performCancel(order, position); // Execute database update
             dialog.dismiss();
         });
 
@@ -151,6 +143,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
         dialog.show();
     }
 
+    // Updates the order status to "Cancelled" in Firebase Firestore
     private void performCancel(Order order, int position) {
         FirebaseFirestore.getInstance().collection("orders")
                 .document(order.getOrderId())
@@ -163,11 +156,12 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
                 });
     }
 
+    // ViewHolder class to hold references to all item views
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvDate, tvOrderId, tvStatus, tvSubtotal, tvTotal, tvNote;
         RecyclerView recyclerItems;
         Button btnCancel;
-        TextView tvDisclaimer; // NEW: Disclaimer TextView
+        TextView tvDisclaimer;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -179,7 +173,7 @@ public class ActiveOrderAdapter extends RecyclerView.Adapter<ActiveOrderAdapter.
             tvNote = itemView.findViewById(R.id.tv_order_note);
             recyclerItems = itemView.findViewById(R.id.recycler_order_summary);
             btnCancel = itemView.findViewById(R.id.btn_cancel_order);
-            tvDisclaimer = itemView.findViewById(R.id.tv_cancel_disclaimer); // NEW
+            tvDisclaimer = itemView.findViewById(R.id.tv_cancel_disclaimer);
         }
     }
 }
